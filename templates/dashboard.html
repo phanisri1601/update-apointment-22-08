@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IM Solutions Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .magical-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glow-effect {
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+        
+        .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(3px);
+        }
+        
+        .nav-link.active {
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+            font-size: 14px;
+            
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .table {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table th {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-weight: 600;
+            padding: 14px;
+            text-align: left;
+            font-size: 13px;
+        }
+        
+        .table td {
+            padding: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+        }
+        
+        .table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .status-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .user-info:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .user-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+        
+        .user-icon {
+            color: rgba(255, 255, 255, 0.7);
+            flex-shrink: 0;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: white;
+        }
+        
+        .user-detail {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 50%, rgba(240, 147, 251, 0.1) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+            border-color: rgba(102, 126, 234, 0.2);
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 6px;
+        }
+        
+        .metric-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .sidebar {
+            background: rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-bar {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 10px;
+            padding: 10px 14px;
+            backdrop-filter: blur(10px);
+            font-size: 14px;
+        }
+        
+        .search-bar::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .search-bar:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+        }
+        
+        /* Mobile-first responsive design */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100vh;
+                width: 280px;
+                z-index: 50;
+                transition: left 0.3s ease;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+            
+            .metric-card {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+            
+            .metric-value {
+                font-size: 1.5rem;
+            }
+            
+            .metric-label {
+                font-size: 0.8rem;
+            }
+            
+            .card {
+                margin-bottom: 16px;
+                padding: 16px;
+            }
+            
+            .table {
+                font-size: 12px;
+            }
+            
+            .table th,
+            .table td {
+                padding: 8px 6px;
+            }
+            
+            .btn-primary,
+            .btn-secondary {
+                padding: 8px 16px;
+                font-size: 13px;
+                
+            }
+            
+            .nav-link {
+                padding: 12px 16px;
+                font-size: 16px;
+                min-height: 48px;
+            }
+            
+            .search-bar {
+                font-size: 16px;
+                padding: 12px 16px;
+            }
+            
+            /* Mobile menu toggle */
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .desktop-nav {
+                display: none;
+            }
+            
+            /* Responsive table */
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Responsive charts */
+            .chart-container {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+            
+            /* User info responsive */
+            .user-info {
+                padding: 6px;
+            }
+            
+            .user-name {
+                font-size: 13px;
+            }
+            
+            .user-detail {
+                font-size: 10px;
+            }
+            
+            /* Grid improvements for mobile */
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            /* Button improvements for mobile */
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                margin-bottom: 8px;
+                width: 40%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+            }
+            
+            /* Reduce refresh button size on mobile */
+            .btn-primary {
+                padding: 8px 12px;
+                font-size: 12px;
+                min-height: 36px;
+                width: 40%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+            }
+            
+            /* Header improvements */
+            .header .flex.items-center.justify-between {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+            }
+            
+            .header .flex.items-center.gap-3:last-child {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            /* Fix text overlapping in mobile view */
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                max-width: 100%;
+            }
+            
+            .table th,
+            .table td {
+                white-space: nowrap;
+                min-width: 80px;
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            /* Ensure proper text wrapping for long content */
+            .user-info {
+                max-width: 100px;
+                overflow: hidden;
+            }
+            
+            .user-name,
+            .user-detail {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+            }
+        }
+            
+            .sidebar.open {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+            
+            .metric-card {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+            
+            .metric-value {
+                font-size: 1.5rem;
+            }
+            
+            .metric-label {
+                font-size: 0.8rem;
+            }
+            
+            .card {
+                margin-bottom: 16px;
+                padding: 16px;
+            }
+            
+            .table {
+                font-size: 12px;
+            }
+            
+            .table th,
+            .table td {
+                padding: 8px 6px;
+            }
+            
+            .btn-primary,
+            .btn-secondary {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+            
+            .nav-link {
+                padding: 12px 16px;
+                font-size: 16px;
+                min-height: 48px;
+            }
+            
+            .search-bar {
+                font-size: 16px;
+                padding: 12px 16px;
+            }
+            
+            /* Mobile menu toggle */
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .desktop-nav {
+                display: none;
+            }
+            
+            /* Responsive table */
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Responsive charts */
+            .chart-container {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+            
+            /* User info responsive */
+            .user-info {
+                padding: 6px;
+            }
+            
+            .user-name {
+                font-size: 13px;
+            }
+            
+            .user-detail {
+                font-size: 10px;
+            }
+        }
+        
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .main-content {
+                margin-left: 240px;
+            }
+            
+            .metric-card {
+                padding: 18px;
+            }
+            
+            .metric-value {
+                font-size: 1.75rem;
+            }
+            
+            .table th,
+            .table td {
+                padding: 10px 8px;
+            }
+        }
+        
+        @media (min-width: 1025px) {
+            .sidebar {
+                width: 280px;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: calc(100% - 280px);
+            }
+            
+            .mobile-menu-toggle {
+                display: none;
+            }
+            
+            .desktop-nav {
+                display: flex;
+            }
+        }
+        
+        /* Mobile menu toggle button */
+        .mobile-menu-toggle {
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 10px;
+            transition: all 0.3s ease;
+            min-width: 44px;
+            min-height: 44px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Force mobile menu toggle to show on mobile */
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: flex !important;
+            }
+            
+            /* Ensure sidebar is properly hidden on mobile */
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            /* Improve mobile layout */
+            .header h2 {
+                font-size: 1.25rem;
+            }
+            
+            .header p {
+                font-size: 0.875rem;
+            }
+            
+            /* Better mobile spacing */
+            .p-4 {
+                padding: 1rem;
+            }
+            
+            .gap-4 {
+                gap: 1rem;
+            }
+        }
+        
+        .mobile-menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+        
+        /* Overlay for mobile menu */
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+        }
+        
+        .mobile-overlay.open {
+            display: block;
+        }
+        
+        /* Mobile close button styling */
+        .mobile-close-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 6px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .mobile-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        
+        /* Status indicators */
+        .status-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .status-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .status-error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        /* Make all tables responsive by default */
+        .table {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .table table {
+            min-width: 600px;
+            width: 100%;
+        }
+        
+        .table th {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        /* Responsive table improvements */
+        @media (max-width: 768px) {
+            .table {
+                margin: 0 -16px;
+                padding: 0 16px;
+            }
+            
+            .table table {
+                min-width: 500px;
+            }
+            
+            .table th,
+            .table td {
+                white-space: nowrap;
+                min-width: 100px;
+            }
+            
+            .table th:first-child,
+            .table td:first-child {
+                position: relative;
+                left: 0;
+                background: rgba(255, 255, 255, 0.05);
+                z-index: 10;
+            }
+        }
+        
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulseGlow {
+            from { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); }
+            to { box-shadow: 0 0 30px rgba(102, 126, 234, 0.6); }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Mobile overlay -->
+    <div class="mobile-overlay" id="mobile-overlay" onclick="closeMobileMenu()"></div>
+    
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar w-60 p-4" id="sidebar">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                        <span class="text-white text-lg font-bold">IM</span>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-white">IM Solutions</h1>
+                        <p class="text-xs text-gray-300">Dashboard</p>
+                    </div>
+                </div>
+                <!-- Close button for mobile -->
+                <button class="mobile-close-btn md:hidden" onclick="closeMobileMenu()">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <nav class="space-y-1">
+                <a href="#" onclick="showTab('overview'); closeMobileMenuOnNavClick();" id="nav-overview" class="nav-link active">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
+                    </svg>
+                    <span>Overview</span>
+                </a>
+                <a href="#" onclick="showTab('leads'); closeMobileMenuOnNavClick();" id="nav-leads" class="nav-link">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <span>Leads</span>
+                </a>
+                <a href="#" onclick="showTab('appointments'); closeMobileMenuOnNavClick();" id="nav-appointments" class="nav-link">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <span>Appointments</span>
+                </a>
+                <a href="#" onclick="showTab('conversations'); closeMobileMenuOnNavClick();" id="nav-conversations" class="nav-link">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    </svg>
+                    <span>Conversations</span>
+                </a>
+                <a href="#" onclick="showTab('users'); closeMobileMenuOnNavClick();" id="nav-users" class="nav-link">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                    </svg>
+                    <span>User Details</span>
+                </a>
+                <a href="/logout" class="nav-link" onclick="closeMobileMenuOnNavClick();">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col main-content">
+            <!-- Header -->
+            <div class="header p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                        <div>
+                            <h2 class="text-xl font-bold text-white">Product Sales Dashboard</h2>
+                            <p class="text-sm text-gray-300">Monitor your business performance in real-time</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="manualRefresh()" class="btn-primary">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            Refresh
+                        </button>
+                        <div class="relative">
+                            <input type="text" placeholder="Search..." class="search-bar w-56">
+                            <svg class="w-4 h-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                    </div>
+                        </div>
+                    </div>
+                </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 p-4 overflow-y-auto">
+                <!-- Status Messages -->
+                {% if error_message %}
+                <div class="status-error mb-4">
+                    <strong>Error:</strong> {{ error_message }}
+                    <button onclick="location.reload()" class="ml-3 text-white hover:text-gray-200">×</button>
+                </div>
+                {% endif %}
+
+                {% if rtdb_available %}
+                <div class="status-success mb-4">
+                    <strong>✅ Connected:</strong> Firebase is connected and dashboard data is live!
+                </div>
+                {% else %}
+                <div class="status-warning mb-4">
+                    <strong>⚠️ Warning:</strong> Firebase is not connected. Dashboard data may not be available.
+                </div>
+                {% endif %}
+
+                <!-- Overview Tab -->
+                <div id="overview-tab" class="tab-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="metric-card">
+                            <div class="metric-value">{{ leads|length if leads else 0 }}</div>
+                            <div class="metric-label">Total Leads</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">{{ appointments|length if appointments else 0 }}</div>
+                            <div class="metric-label">Appointments</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">{{ conversations|length if conversations else 0 }}</div>
+                            <div class="metric-label">Conversations</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">{{ metrics.totalUsers if metrics and metrics.totalUsers is not none else (users|length if users else 0) }}</div>
+                            <div class="metric-label">Total Users</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        <div class="chart-container mx-auto compact-chart" style="height:220px; max-width:360px;">
+                            <h3 class="text-sm font-semibold text-white mb-2">Lead Conversion Rate</h3>
+                            <canvas id="leadChart"></canvas>
+                        </div>
+                        <div class="chart-container mx-auto compact-chart" style="height:220px; max-width:360px;">
+                            <h3 class="text-sm font-semibold text-white mb-2">Monthly Growth</h3>
+                            <canvas id="growthChart"></canvas>
+                        </div>
+                        <div class="chart-container mx-auto compact-chart" style="height:220px; max-width:360px;">
+                            <h3 class="text-sm font-semibold text-white mb-2">Answered vs Unanswered</h3>
+                            <canvas id="qaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Leads Tab -->
+                <div id="leads-tab" class="tab-content hidden">
+                    <div class="card p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-white">Lead Management</h3>
+                            <button onclick="exportData('leads')" class="btn-secondary">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                Export
+                            </button>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <div class="table">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th>Message</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                <tbody>
+                                    {% if leads %}
+                                    {% for lead in leads %}
+                                        <tr>
+                                            <td>{{ lead.name }}</td>
+                                            <td>{{ lead.email }}</td>
+                                            <td>{{ lead.phone if lead.phone else 'N/A' }}</td>
+                                            <td>{{ lead.message[:50] + '...' if lead.message and lead.message|length > 50 else (lead.message or 'N/A') }}</td>
+                                            <td>{{ lead.created_at[:10] if lead.created_at else 'N/A' }}</td>
+                                            <td><span class="status-success">New</span></td>
+                                        </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-center text-gray-400 py-6">No leads available yet</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Appointments Tab -->
+                <div id="appointments-tab" class="tab-content hidden">
+                    <div class="card p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-white">Appointment Schedule</h3>
+                            <button onclick="exportData('appointments')" class="btn-secondary">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Export
+                            </button>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <div class="table">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Time</th>
+                                            <th>Notes</th>
+                                            <th>Appointment ID</th>
+                                            <th>User</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                <tbody>
+                                    {% if appointments %}
+                                        {% for appointment in appointments %}
+                                        <tr>
+                                            <td>{{ appointment.title }}</td>
+                                            <td>{{ appointment.time[:16] if appointment.time else 'N/A' }}</td>
+                                            <td>{{ appointment.notes[:50] + '...' if appointment.notes and appointment.notes|length > 50 else (appointment.notes or 'N/A') }}</td>
+                                            <td>{{ appointment.id }}</td>
+                                            <td>
+                                                <div class="user-info">
+                                                    {% if appointment.user and appointment.user.name %}
+                                                        <div class="user-header">
+                                                            <svg class="user-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                                            </svg>
+                                                            <span class="user-name">{{ appointment.user.name }}</span>
+                                                        </div>
+                                                        {% if appointment.user.email %}
+                                                            <span class="user-detail">{{ appointment.user.email }}</span>
+                                                        {% endif %}
+                                                        {% if appointment.user.phone %}
+                                                            <span class="user-detail">{{ appointment.user.phone }}</span>
+                                                        {% endif %}
+                                                        {% if appointment.user.company %}
+                                                            <span class="user-detail">{{ appointment.user.company }}</span>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <div class="user-header">
+                                                            <svg class="user-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                                            </svg>
+                                                            <span class="user-detail">Anonymous User</span>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if appointment.status == 'cancelled' %}
+                                                    <span class="status-error">Cancelled</span>
+                                                {% elif appointment.status == 'scheduled' %}
+                                                    <span class="status-success">Scheduled</span>
+                                                {% else %}
+                                                    <span class="status-warning">{{ appointment.status|capitalize }}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-center text-gray-400 py-6">No appointments scheduled yet</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Conversations Tab -->
+                <div id="conversations-tab" class="tab-content hidden">
+                    <div class="card p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-white">Chat Conversations</h3>
+                            <button onclick="exportData('conversations')" class="btn-secondary">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Export
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                            <div class="chart-container mx-auto" style="height:200px; max-width:420px;">
+                                <h3 class="text-sm font-semibold text-white mb-2">Intent Distribution</h3>
+                                <canvas id="intentChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <div class="table">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>Session ID</th>
+                                            <th>User Message</th>
+                                            <th>Bot Response</th>
+                                            <th>Timestamp</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                <tbody>
+                                    {% if conversations %}
+                                        {% for conversation in conversations %}
+                                        <tr>
+                                            <td>{{ conversation.session_id[:20] + '...' if conversation.session_id and conversation.session_id|length > 20 else (conversation.session_id or 'N/A') }}</td>
+                                            <td>{{ conversation.user_message[:50] + '...' if conversation.user_message and conversation.user_message|length > 50 else (conversation.user_message or 'N/A') }}</td>
+                                            <td>{{ conversation.bot_response[:50] + '...' if conversation.bot_response and conversation.bot_response|length > 50 else (conversation.bot_response or 'N/A') }}</td>
+                                            <td>{{ conversation.timestamp[:16] if conversation.timestamp else 'N/A' }}</td>
+                                            <td><span class="status-success">Completed</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="5" class="text-center text-gray-400 py-6">No conversations recorded yet</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- User Details Tab -->
+                <div id="users-tab" class="tab-content hidden">
+                    <div class="card p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-white">User Details</h3>
+                            <button onclick="exportData('users')" class="btn-secondary">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Export
+                            </button>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <div class="table">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th>Company</th>
+                                            <th>First Visit</th>
+                                            <th>Source</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="users-table-body">
+                                        <!-- User data will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div id="users-loading" class="text-center py-6 text-gray-400">
+                            <div class="loading-spinner mx-auto mb-3"></div>
+                            Loading user data...
+                        </div>
+                        <div id="users-empty" class="text-center py-6 text-gray-400 hidden">
+                            <div class="text-center py-6 text-gray-400">
+                                No user data available yet.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu functionality
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+        
+        function closeMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+        
+        // Close mobile menu when clicking on a nav link
+        function closeMobileMenuOnNavClick() {
+            if (window.innerWidth <= 768) {
+                closeMobileMenu();
+            }
+        }
+        
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.add('hidden'));
+            
+            // Remove active class from all nav items
+            const navItems = document.querySelectorAll('[id^="nav-"]');
+            navItems.forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            const selectedTab = document.getElementById(tabName + '-tab');
+            if (selectedTab) {
+                selectedTab.classList.remove('hidden');
+                selectedTab.classList.add('fade-in');
+            }
+            
+            // Add active class to selected nav item
+            const selectedNav = document.getElementById('nav-' + tabName);
+            if (selectedNav) {
+                selectedNav.classList.add('active');
+            }
+            
+            // Load data for specific tabs
+            if (tabName === 'users') {
+                loadUsersData();
+            }
+        }
+
+        // Load users data from chatbot forms and existing users
+        function loadUsersData() {
+            const usersTableBody = document.getElementById('users-table-body');
+            const usersLoading = document.getElementById('users-loading');
+            const usersEmpty = document.getElementById('users-empty');
+            
+            if (!usersTableBody) return;
+            
+            usersLoading.classList.remove('hidden');
+            usersEmpty.classList.add('hidden');
+            
+            // Load chatbot users
+            fetch('/get_users_data')
+                .then(response => response.json())
+                .then(data => {
+                    usersLoading.classList.add('hidden');
+                    
+                    let allUsers = [];
+                    
+                    // Add existing users from the template if available
+                    {% if users %}
+                    {% for user in users %}
+                    allUsers.push({
+                        name: '{{ user.name }}',
+                        email: '{{ user.email }}',
+                        phone: '{{ user.phone }}',
+                        company: '{{ user.company if user.company else "" }}',
+                        firstVisit: '{{ user.first_seen if user.first_seen else "" }}',
+                        source: 'existing'
+                    });
+                    {% endfor %}
+                    {% endif %}
+                    
+                    // Add chatbot users
+                    if (data.users && data.users.length > 0) {
+                        data.users.forEach(user => {
+                            allUsers.push({
+                                name: user.name || 'N/A',
+                                email: user.email || 'N/A',
+                                phone: user.phone || 'N/A',
+                                company: user.company || 'N/A',
+                                firstVisit: user.timestamp ? new Date(user.timestamp).toLocaleDateString() : 'N/A',
+                                source: user.source || 'chatbot'
+                            });
+                        });
+                    }
+                    
+                    if (allUsers.length > 0) {
+                        usersTableBody.innerHTML = '';
+                        allUsers.forEach(user => {
+                            const row = document.createElement('tr');
+                            row.className = 'fade-in';
+                            
+                            row.innerHTML = `
+                                <td>${user.name}</td>
+                                <td>${user.email}</td>
+                                <td>${user.phone}</td>
+                                <td>${user.company}</td>
+                                <td>${user.firstVisit}</td>
+                                <td><span class="status-success">${user.source}</span></td>
+                            `;
+                            
+                            usersTableBody.appendChild(row);
+                        });
+                    } else {
+                        usersEmpty.classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading users data:', error);
+                    usersLoading.classList.add('hidden');
+                    usersEmpty.classList.remove('hidden');
+                    usersEmpty.textContent = 'Error loading user data.';
+                });
+        }
+        
+        // Removed legacy exportData stub
+        
+        // Manual refresh function
+        function manualRefresh() {
+            location.reload();
+        }
+        
+        // Refresh dashboard data
+        function refreshDashboardData() {
+            // Refresh the current tab
+            const activeTab = document.querySelector('.tab-content:not(.hidden)');
+            if (activeTab && activeTab.id === 'users-tab') {
+                loadUsersData();
+            }
+        }
+
+        // Removed duplicate exportData stub
+
+        // Auto-refresh dashboard data every 30 seconds (single definition)
+        function refreshDashboardData() {
+            if (!document.getElementById('users-tab').classList.contains('hidden')) {
+                loadUsersData();
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up auto-refresh
+            setInterval(refreshDashboardData, 30000);
+            
+            // Initialize charts
+            initializeCharts();
+            
+            // Load initial data
+            showTab('overview');
+        });
+
+        // Initialize charts
+        function initializeCharts() {
+            // Lead Conversion Chart
+            const leadCtx = document.getElementById('leadChart');
+            if (leadCtx) {
+                new Chart(leadCtx, {
+                    type: 'doughnut',
+                data: {
+                        labels: ['Converted', 'Pending', 'Lost'],
+                    datasets: [{
+                            data: [65, 25, 10],
+                            backgroundColor: [
+                                'rgba(102, 126, 234, 0.85)',
+                                'rgba(118, 75, 162, 0.85)',
+                                'rgba(240, 147, 251, 0.85)'
+                            ],
+                            borderWidth: 0,
+                            cutout: '70%'
+                    }]
+                },
+                options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: 'white', boxWidth: 10, font: { size: 10 } }
+                            }
+                        }
+                }
+            });
+        }
+
+            // Growth Chart (compact bar)
+            const growthCtx = document.getElementById('growthChart');
+            if (growthCtx) {
+                new Chart(growthCtx, {
+                type: 'bar',
+                data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                            label: 'Revenue',
+                            data: [12, 19, 3, 5, 2, 3],
+                            backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            borderWidth: 1,
+                            barThickness: 18,
+                            maxBarThickness: 18,
+                            categoryPercentage: 0.6,
+                            barPercentage: 0.7
+                    }]
+                },
+                options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                ticks: { color: 'white', font: { size: 10 } },
+                                grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                                beginAtZero: true
+                            },
+                            x: {
+                                ticks: { color: 'white', font: { size: 10 } },
+                                grid: { display: false }
+                            }
+                        }
+                }
+            });
+        }
+
+            // Answered vs Unanswered (from conversations)
+            const qaCtx = document.getElementById('qaChart');
+            if (qaCtx) {
+                // Try to derive simple counts from conversations passed to template
+                let answered = 0;
+                let unanswered = 0;
+                try {
+                    const convs = {{ (conversations | tojson) if conversations else '[]' }};
+                    if (Array.isArray(convs)) {
+                        convs.forEach(c => {
+                            const hasUser = c && c.user_message && String(c.user_message).trim().length > 0;
+                            const hasBot = c && c.bot_response && String(c.bot_response).trim().length > 0;
+                            if (hasUser && hasBot) answered += 1; else if (hasUser && !hasBot) unanswered += 1;
+                        });
+                    }
+                } catch (e) {
+                    answered = 0; unanswered = 0;
+                }
+                // Fallback sizes
+                if (answered === 0 && unanswered === 0) { answered = 5; unanswered = 2; }
+                new Chart(qaCtx, {
+                type: 'bar',
+                data: {
+                        labels: ['Answered', 'Unanswered'],
+                    datasets: [{
+                            data: [answered, unanswered],
+                            backgroundColor: ['rgba(16, 185, 129, 0.7)', 'rgba(239, 68, 68, 0.7)'],
+                            borderColor: ['rgba(16, 185, 129, 1)', 'rgba(239, 68, 68, 1)'],
+                            borderWidth: 1,
+                            barThickness: 22,
+                            maxBarThickness: 22,
+                            categoryPercentage: 0.6,
+                            barPercentage: 0.7
+                    }]
+                },
+                options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                ticks: { color: 'white', font: { size: 10 } },
+                                grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                                beginAtZero: true
+                            },
+                            x: {
+                                ticks: { color: 'white', font: { size: 10 } },
+                                grid: { display: false }
+                            }
+                        }
+                }
+            });
+        }
+        }
+
+        // Search functionality
+        function filterTable(tableId, searchTerm) {
+            const table = document.getElementById(tableId);
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm.toLowerCase())) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+
+        // Initialize search functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchBar = document.querySelector('.search-bar');
+            if (searchBar) {
+                searchBar.addEventListener('input', function(e) {
+                    const searchTerm = e.target.value;
+                    // Implement search across all tables
+                    console.log('Searching for:', searchTerm);
+                });
+            }
+        });
+
+            // Intent Distribution (simple keyword-based)
+            const intentCtx = document.getElementById('intentChart');
+            if (intentCtx) {
+                let intentCounts = { general: 0, services: 0, schedule: 0, cancel: 0, contact: 0 };
+                try {
+                    const convs = {{ (conversations | tojson) if conversations else '[]' }};
+                    if (Array.isArray(convs)) {
+                        convs.forEach(c => {
+                            const msg = (c && c.user_message ? String(c.user_message).toLowerCase() : '');
+                            if (/(service|pricing|offer|package)/.test(msg)) intentCounts.services++;
+                            else if (/(schedule|book|meeting|appointment)/.test(msg)) intentCounts.schedule++;
+                            else if (/(cancel|reschedule)/.test(msg)) intentCounts.cancel++;
+                            else if (/(contact|call|reach|email)/.test(msg)) intentCounts.contact++;
+                            else intentCounts.general++;
+                        });
+                    }
+                } catch (e) {
+                    // leave defaults
+                }
+
+                new Chart(intentCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['General', 'Services', 'Schedule', 'Cancel', 'Contact'],
+                        datasets: [{
+                            data: [intentCounts.general, intentCounts.services, intentCounts.schedule, intentCounts.cancel, intentCounts.contact],
+                            backgroundColor: [
+                                'rgba(148, 163, 184, 0.8)',
+                                'rgba(99, 102, 241, 0.85)',
+                                'rgba(16, 185, 129, 0.85)',
+                                'rgba(239, 68, 68, 0.85)',
+                                'rgba(244, 114, 182, 0.85)'
+                            ],
+                            borderWidth: 0,
+                            cutout: '70%'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { color: 'white', boxWidth: 10, font: { size: 10 } } } }
+                    }
+                });
+            }
+            
+            // Enhance user information display
+            function enhanceUserInfo() {
+                const userCells = document.querySelectorAll('.user-info');
+                userCells.forEach(cell => {
+                    const userName = cell.querySelector('.user-name');
+                    const userDetails = cell.querySelectorAll('.user-detail');
+                    
+                    if (userName && userName.textContent.trim() !== 'Anonymous User') {
+                        // Add a subtle highlight for named users
+                        userName.style.color = '#10b981';
+                        
+                        // Add tooltip for user details
+                        if (userDetails.length > 0) {
+                            const tooltip = document.createElement('div');
+                            tooltip.className = 'tooltip';
+                            tooltip.style.cssText = `
+                                position: absolute;
+                                background: rgba(0, 0, 0, 0.9);
+                                color: white;
+                                padding: 8px 12px;
+                                border-radius: 8px;
+                                font-size: 12px;
+                                z-index: 1000;
+                                display: none;
+                                pointer-events: none;
+                                white-space: nowrap;
+                            `;
+                            
+                            let tooltipText = userName.textContent;
+                            userDetails.forEach(detail => {
+                                if (detail.textContent.trim()) {
+                                    tooltipText += '\n' + detail.textContent;
+                                }
+                            });
+                            tooltip.textContent = tooltipText;
+                            
+                            cell.appendChild(tooltip);
+                            
+                            // Show tooltip on hover
+                            cell.addEventListener('mouseenter', () => {
+                                tooltip.style.display = 'block';
+                            });
+                            
+                            cell.addEventListener('mouseleave', () => {
+                                tooltip.style.display = 'none';
+                            });
+                        }
+                    }
+                });
+            }
+            
+            // Initialize user info enhancement when DOM is loaded
+            document.addEventListener('DOMContentLoaded', function() {
+                // Wait a bit for the content to load
+                setTimeout(enhanceUserInfo, 500);
+            });
+            
+            // Re-run enhancement when switching tabs
+            const originalShowTab = showTab;
+            showTab = function(tabName) {
+                originalShowTab(tabName);
+                // Re-enhance user info after tab switch
+                setTimeout(enhanceUserInfo, 100);
+            };
+            
+            // Export data from the table displayed in a tab
+            function exportData(type) {
+                let tabId = '';
+                let filename = '';
+                switch (type) {
+                    case 'leads':
+                        tabId = 'leads-tab';
+                        filename = 'leads_export.csv';
+                        break;
+                    case 'appointments':
+                        tabId = 'appointments-tab';
+                        filename = 'appointments_export.csv';
+                        break;
+                    case 'conversations':
+                        tabId = 'conversations-tab';
+                        filename = 'conversations_export.csv';
+                        break;
+                    case 'users':
+                        tabId = 'users-tab';
+                        filename = 'users_export.csv';
+                        break;
+                    default:
+                        console.error('Unknown export type:', type);
+                        return;
+                }
+                const tableEl = document.querySelector(`#${tabId} table`);
+                if (!tableEl) {
+                    alert('No data available to export');
+                    return;
+                }
+                const csv = tableToCSV(tableEl);
+                downloadCSV(csv, filename);
+            }
+            
+            // Convert an HTML table to CSV text
+            function tableToCSV(tableEl) {
+                const rows = Array.from(tableEl.querySelectorAll('tr'));
+                const csvLines = [];
+                rows.forEach(row => {
+                    const cells = Array.from(row.querySelectorAll('th, td')).map(cell => {
+                        let text = (cell.innerText || '').trim();
+                        text = text.replace(/\s+/g, ' ');
+                        if (text.includes('"')) text = text.replace(/"/g, '""');
+                        if (/[",\n]/.test(text)) text = `"${text}"`;
+                        return text;
+                    });
+                    csvLines.push(cells.join(','));
+                });
+                return csvLines.join('\n');
+            }
+            
+            function downloadCSV(csv, filename) {
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', filename);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
+    </script>
+</body>
+</html>

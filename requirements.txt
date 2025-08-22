@@ -1,0 +1,13 @@
+flask==2.0.1
+werkzeug==2.0.3
+python-dotenv==0.19.0
+google-generativeai==0.3.0
+requests==2.26.0
+beautifulsoup4==4.9.3
+icalendar==5.0.0
+pytz==2021.1
+twilio==8.10.0
+google-api-python-client==2.108.0
+google-auth-httplib2==0.1.1
+google-auth-oauthlib==1.1.0 
+firebase-admin==6.5.0

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-white rounded-lg shadow p-6">
+        <h1 class="text-xl font-bold text-gray-800 mb-4">Dashboard Login</h1>
+        {% if error %}
+        <div class="mb-3 p-2 text-sm rounded bg-red-100 text-red-800">{{ error }}</div>
+        {% endif %}
+        <form method="post" autocomplete="off">
+            <label class="block mb-2 text-sm text-gray-600">Username</label>
+            <input name="username" class="w-full border rounded px-3 py-2 mb-4" placeholder="Username" autocomplete="off" autocapitalize="none" spellcheck="false" value="" readonly onfocus="this.removeAttribute('readonly');" required>
+            <label class="block mb-2 text-sm text-gray-600">Password</label>
+            <input type="password" name="password" class="w-full border rounded px-3 py-2 mb-6" placeholder="Password" autocomplete="new-password" value="" readonly onfocus="this.removeAttribute('readonly');" required>
+            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded">Sign in</button>
+        </form>
+    </div>
+    
+    </body>
+    </html>
+
