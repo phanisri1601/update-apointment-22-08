@@ -508,13 +508,27 @@ def cancel_appointment():
 
         # Persist back CSV file if we loaded any
         if appointments_list:
+            # Clean rows: remove unexpected keys (like None) and ensure all fieldnames exist
+            cleaned_rows = []
+            for row in appointments_list:
+                if isinstance(row, dict):
+                    # Remove stray None key produced by csv.DictReader when there are extra columns
+                    if None in row:
+                        try:
+                            del row[None]
+                        except Exception:
+                            pass
+                    # Ensure all expected keys exist
+                    for k in ['id', 'title', 'time', 'notes', 'status', 'user_name', 'user_email', 'user_phone', 'user_company']:
+                        row.setdefault(k, '')
+                    cleaned_rows.append(row)
             with open('appointments.csv', 'w', newline='', encoding='utf-8') as f:
                 writer = csv.DictWriter(
                     f,
-                    fieldnames=['id', 'title', 'time', 'notes', 'status', 'user_name', 'user_email', 'user_phone']
+                    fieldnames=['id', 'title', 'time', 'notes', 'status', 'user_name', 'user_email', 'user_phone', 'user_company']
                 )
                 writer.writeheader()
-                writer.writerows(appointments_list)
+                writer.writerows(cleaned_rows)
 
         # Update Firebase and fetch latest details
         fb_details = None
@@ -1158,4 +1172,4 @@ def get_users_data():
 if __name__ == '__main__':
     # Create appointments directory if it doesn't exist
     os.makedirs('appointments', exist_ok=True)
-    app.run(debug=True, port=5001) 
+    app.run(debug=True, port=5001)
