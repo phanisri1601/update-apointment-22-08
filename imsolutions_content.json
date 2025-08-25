@@ -127,5 +127,112 @@
             "YouTube",
             "Instagram"
         ]
-    }
-} 
+    },
+    "blogs": [
+        {
+            "title": "How AI Is Transforming Website Design: Future-Proofing Your Brand",
+            "link": "https://www.imsolutions.co/how-ai-is-transforming-website-design",
+            "description": "Artificial Intelligence isn’t coming to web design. It’s already here—redefining how we create, interact, and evolve online..."
+        },
+        {
+            "title": "WordPress vs Webflow vs Custom Code: What’s Right for Startups?",
+            "link": "https://www.imsolutions.co/wordpress-vs-webflow-vs-custom-code",
+            "description": "Choosing the right platform to build your website isn't just a technical decision—it’s a strategic one. Whether you’re..."
+        },
+        {
+            "title": "Top 7 ORM Strategies That Actually Work in 2025 (For Global Brands)",
+            "link": "https://www.imsolutions.co/top-7-orm-strategies-that-actually-work-in-2025",
+            "description": "It’s filtered through search engines, AI assistants, reviews, and Reddit threads. What shows up—and how it shows..."
+        },
+        {
+            "title": "How to Choose the Best Website Designing Agency: A 2025 Guide",
+            "link": "https://www.imsolutions.co/how-to-choose-the-best-website-designing-agency",
+            "description": "In 2025, your website isn’t just a digital space—it’s your brand’s first handshake. The choice of a website design..."
+        },
+        {
+            "title": "Online Reputation Management in Bangalore: Why Your Brand Needs It Now",
+            "link": "https://www.imsolutions.co/online-reputation-management-in-bangalore",
+            "description": "In a world of open platforms and instant feedback, reputation isn’t optional—it’s your currency. At IM Solutions..."
+        },
+        {
+            "title": "Top 10 Website Design Trends Dominating in 2025",
+            "link": "https://www.imsolutions.co/top-10-website-design-trends-dominating-in-2025",
+            "description": "Design isn’t just about how it looks. It’s about how it feels—how seamlessly it guides, informs, and inspires. In 2025..."
+        },
+        {
+            "title": "How Performance Marketing Can Double Your ROI in 2025",
+            "link": "https://www.imsolutions.co/how-performance-marketing-can-double-your-roi-in-2025",
+            "description": "In today’s digital-first landscape, businesses can no longer afford to run ads that simply \"look good\"—they need campaigns..."
+        },
+        {
+            "title": "Video Shoots That Spark Cravings: The Recipe for Restaurant Marketing Success!",
+            "link": "https://www.imsolutions.co/video-shoots-that-spark-cravings",
+            "description": "In the digital-first world, food is no longer just about taste; it’s about visual storytelling that ignites cravings. With the.."
+        },
+        {
+            "title": "Top SEO Trends for 2025: What You Need to Know",
+            "link": "https://www.imsolutions.co/top-seo-trends-for-2025",
+            "description": "In 2024, the SEO landscape is evolving faster than ever. With advancements in AI, user-centric algorithms, and the rise of zero-click searches.."
+        },
+        {
+            "title": "Revolutionizing Content Creation: How AI is Changing the Game",
+            "link": "https://www.imsolutions.co/revolutionizing-content-creation-how-ai-is-changing-the-game",
+            "description": "Content creation is entering a new era, and Artificial Intelligence (AI) is at the forefront of this transformation. Once a domain dominated by human creativity.."
+        },
+        {
+            "title": "The Power of Personalization: How to Create Hyper-Targeted Marketing Campaigns",
+            "link": "https://www.imsolutions.co/the-power-of-personalization-how-to-create-hyper-targeted-marketing-campaigns",
+            "description": "Imagine a world where every message, every ad, and every touchpoint feels tailor-made just for you. This isn’t the future—it's now..."
+        },
+        {
+            "title": "Building Bridges, Not Just Links: The Emotional Blueprint of Digital Success",
+            "link": "https://www.imsolutions.co/building-bridges-not-just-links-the-emotional-blueprint-of-digital-success",
+            "description": "In the ever-evolving tapestry of the digital landscape, brands are not merely entities; they are stories waiting to be artfully crafted. At IM Solutions.."
+        },
+        {
+            "title": "The Heartfelt Journey of Brands in the Digital Sphere",
+            "link": "https://www.imsolutions.co/the-heartfelt-journey-of-brands-in-the-digital-sphere",
+            "description": "In the ever-evolving tapestry of the digital landscape, brands are not merely entities; they are stories waiting to be artfully crafted. At IM Solutions.."
+        },
+        {
+            "title": "Revolutionize Your Brand: Unleashing the Power of Digital Marketing Magic",
+            "link": "https://www.imsolutions.co/unleashing-the-power-of-digital-marketing-magic",
+            "description": "In the vast realm of digital landscapes, where brands strive to find their voice, the magic lies in the alchemy of strategic digital marketing. Imagine your.."
+        },
+        {
+            "title": "10 Social Media 2023 Trends for a Successful Social Media Strategy",
+            "link": "https://www.imsolutions.co/10-social-media-trends-2023",
+            "description": "Social Media is not just about selfies and recent travel destinations, but a forum for marketers to demonstrate the superiority of their products.."
+        },
+        {
+            "title": "Importance of Landing Page for Successful Campaign",
+            "link": "https://www.imsolutions.co/landing-page-importance",
+            "description": "Open any search engine and look for the definition of landing pages; you will find different answers from different people. But we believe in defining it as a.."
+        },
+        {
+            "title": "List of Google Algorithm updates in 2021",
+            "link": "https://www.imsolutions.co/list-google-algorithm-updates-2021",
+            "description": "Every year, Google updates its search algorithms multiple times to ensure the users get the most relevant results whenever they search for anything on the search engine."
+        },
+        {
+            "title": "Do's and don't of creative design in business",
+            "link": "https://www.imsolutions.co/dos-and-dont-of-creative-design-in-business/",
+            "description": "In today's dynamic market, we all know the importance of creating a visual identity. Whether you are running a company or a website behind it, your company logos and designs act as the crucial link.."
+        },
+        {
+            "title": "Why Good Creative Design Is Important for your business?",
+            "link": "https://www.imsolutions.co/why-good-creative-design-is-important-for-your-business/",
+            "description": "If your business focuses only on data-driven strategies, you miss out on other aspects of marketing that run the risk of losing customers even before they have ventured in the your digital space.."
+        },
+        {
+            "title": "How to market your brand to residential societies in Bangalore?",
+            "link": "https://www.imsolutions.co/how-can-you-market-your-brand-to-thousands-of-relevant-residential-societies-in-bangalore/",
+            "description": "In Bangalore and several other cities in India, you will see that residential colonies have a Resident Welfare Association for each colony and each block.."
+        },
+        {
+            "title": "What is RWA Activation and why your business needs it?",
+            "link": "https://www.imsolutions.co/what-is-rwa-activation-and-why-your-business-needs-it/",
+            "description": "RWA is also known as Residential Welfare Association. It relates to activities included in Residential areas. RWA activities are one of the most effective branding strategies in business.."
+        }
+    ]
+}

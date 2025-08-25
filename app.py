@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 import pytz
 from icalendar import Calendar, Event
 import json
-import base64
 import csv
 import random
 from twilio.rest import Client
@@ -51,29 +50,37 @@ rtdb_url = None
 try:
     if firebase_admin is not None:
         cred = None
-        # Prefer base64-encoded JSON first
-        fb_cred_json_b64 = os.getenv('FIREBASE_CREDENTIALS_JSON_B64')
-        if fb_cred_json_b64:
-            try:
-                decoded = base64.b64decode(fb_cred_json_b64).decode('utf-8')
-                firebase_credentials = json.loads(decoded)
-                cred = fb_credentials.Certificate(firebase_credentials)
-            except Exception as e:
-                logger.error(f"Failed to parse FIREBASE_CREDENTIALS_JSON_B64: {e}")
-                cred = None
 
-        # Next, prefer credentials from plain JSON env var to avoid storing files
+        # 1) Prefer base64 JSON from env
+        fb_cred_b64 = os.getenv('FIREBASE_CREDENTIALS_JSON_B64')
+        if fb_cred_b64:
+            try:
+                decoded = json.loads(
+                    __import__('base64').b64decode(fb_cred_b64).decode('utf-8')
+                )
+                cred = fb_credentials.Certificate(decoded)
+                try:
+                    logger.info(f"Firebase SA: project={decoded.get('project_id')} email={decoded.get('client_email')}")
+                except Exception:
+                    pass
+            except Exception as e:
+                logger.error(f"Failed to decode FIREBASE_CREDENTIALS_JSON_B64: {e}")
+
+        # 2) Then raw JSON string from env
         if cred is None:
             fb_cred_json = os.getenv('FIREBASE_CREDENTIALS_JSON')
-            try:
-                if fb_cred_json:
-                    firebase_credentials = json.loads(fb_cred_json)
-                    cred = fb_credentials.Certificate(firebase_credentials)
-            except Exception as e:
-                logger.error(f"Failed to parse FIREBASE_CREDENTIALS_JSON: {e}")
-                cred = None
+            if fb_cred_json:
+                try:
+                    parsed = json.loads(fb_cred_json)
+                    cred = fb_credentials.Certificate(parsed)
+                    try:
+                        logger.info(f"Firebase SA: project={parsed.get('project_id')} email={parsed.get('client_email')}")
+                    except Exception:
+                        pass
+                except Exception as e:
+                    logger.error(f"Failed to parse FIREBASE_CREDENTIALS_JSON: {e}")
 
-        # Fallback to credentials file path if provided
+        # 3) Finally, credentials file path from env
         if cred is None:
             cred_file_path = os.getenv('FIREBASE_CREDENTIALS_FILE')
             if cred_file_path and os.path.exists(cred_file_path):
@@ -81,23 +88,24 @@ try:
                     cred = fb_credentials.Certificate(cred_file_path)
                 except Exception as e:
                     logger.error(f"Failed to load Firebase credentials from file: {e}")
-                    cred = None
 
         if cred is not None:
-            # Set the database URL explicitly (allow override via env)
-            rtdb_url = os.getenv('FIREBASE_DATABASE_URL', 'https://imsolutions-e8ddd-default-rtdb.firebaseio.com/')
-
-            # Initialize Firebase with explicit credentials and database URL
-            firebase_admin.initialize_app(cred, {
-                'databaseURL': rtdb_url
-            })
-
-            logger.info(f"Firebase initialized successfully with database: {rtdb_url}")
-            rtdb_available = True
+            rtdb_url = os.getenv('FIREBASE_DATABASE_URL')
+            if not rtdb_url:
+                logger.warning('FIREBASE_DATABASE_URL not set. RTDB features will be disabled.')
+            else:
+                try:
+                    # Initialize only once
+                    if not firebase_admin._apps:
+                        firebase_admin.initialize_app(cred, { 'databaseURL': rtdb_url })
+                    logger.info(f"Firebase initialized successfully with database: {rtdb_url}")
+                    rtdb_available = True
+                except Exception as e:
+                    logger.error(f"Failed to initialize Firebase: {e}")
+                    rtdb_available = False
         else:
             logger.warning('Firebase credentials not provided. RTDB features will be disabled.')
             rtdb_available = False
-            
     else:
         logger.warning('firebase_admin is not installed. Leads dashboard will be disabled until installed.')
 except Exception as e:
@@ -106,31 +114,19 @@ except Exception as e:
 
 # Google Sheets setup
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SPREADSHEET_ID = os.getenv('GOOGLE_SHEETS_SPREADSHEET_ID', '')
+SPREADSHEET_ID = '1KzT0Idmu420OWlLiH6cKcxLZv_zjIbmNq6HjXohKGp4'  # Your Google Sheet ID
 RANGE_NAME = 'Calls!A:E'  # Sheet name and range
 
  # Configure Gemini
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-2.0-flash')
-else:
-    logger.warning('GEMINI_API_KEY not set. Chat responses will be disabled until provided.')
-    model = None
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'AIzaSyAIAqbokZhxpbstxZ8ZUOG1WGrVHrjK8_k')
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel('gemini-2.0-flash')
 
 # Configure Twilio
-TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
-TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
-TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
-twilio_client = None
-if TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN:
-    try:
-        twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-    except Exception as e:
-        logger.error(f"Failed to initialize Twilio client: {e}")
-        twilio_client = None
-else:
-    logger.warning('Twilio credentials not set. Voice call features will be disabled until provided.')
+TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', 'AC98028fc853ea846cf8926582807b9e49')
+TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', 'f262ad9c47a78436a1f90462e61c15bc')
+TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '+13154440346')
+twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 # Store appointments in memory (in production, use a database)
 appointments = []
@@ -156,9 +152,37 @@ def cache_response(user_input, response):
     """Cache the response with current timestamp"""
     response_cache[user_input] = (time.time(), response)
 
+def _services_reply_from_json() -> str:
+    online = IM_SOLUTIONS_DATA.get('services', {}).get('online_services', [])
+    offline = IM_SOLUTIONS_DATA.get('services', {}).get('offline_services', [])
+    online_str = ', '.join(online[:6]) if online else 'SEO, SEM, Social media, Websites'
+    offline_str = ', '.join(offline[:6]) if offline else 'Bus ads, Mall ads, Outdoor'
+    return f"🧠 Online: {online_str}. 🏢 Offline: {offline_str}. Want a quick plan or a free audit?"
+
+def _blogs_reply_from_json() -> str:
+    blogs = IM_SOLUTIONS_DATA.get('blogs', [])
+    if isinstance(blogs, list) and blogs:
+        titles = [b.get('title') for b in blogs if isinstance(b, dict) and b.get('title')]
+        top = ', '.join(titles[:5]) if titles else 'brand stories and growth guides'
+        return f"📝 We share {top}. Want us to draft a blog outline for your niche?"
+    return "📝 We can write fresh, engaging blogs for your audience. What topic should we start with?"
+
+def _recent_blogs_reply(limit: int = 5) -> str:
+    blogs = IM_SOLUTIONS_DATA.get('blogs', [])
+    items = []
+    if isinstance(blogs, list):
+        for b in blogs[:limit]:
+            if isinstance(b, dict):
+                title = b.get('title') or b.get('name') or 'Blog'
+                date = b.get('date') or b.get('published_at') or ''
+                items.append(f"• {title}{(' – ' + date) if date else ''}")
+    if not items:
+        return "📝 No blogs listed yet. Want us to spin up a fresh content calendar for you?"
+    return "📝 Recent blogs:\n" + "\n".join(items) + "\nWant a link or a quick summary?"
+
 # Common questions and their responses
 COMMON_QUESTIONS = {
-    "what are your services": "We offer a wide range of services including digital marketing, SEO, social media marketing, website development, and offline advertising services like bus branding, mall advertising, and more. Would you like specific details about any of these services?",
+    "what are your services": "",
     "where are you located": f"We are headquartered in {IM_SOLUTIONS_DATA['company_info']['location']} with offices in {', '.join(IM_SOLUTIONS_DATA['company_info']['offices'])}.",
     "how can i contact you": "I'd be happy to help you get in touch with our team. Please let me know what specific information or assistance you need, and I can guide you to the right department or provide relevant details.",
     "what is your vision": IM_SOLUTIONS_DATA['vision']
@@ -174,20 +198,8 @@ def get_google_sheets_service():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            # Prefer base64 client config, then plain JSON, then file path
-            client_config_b64 = os.getenv('GOOGLE_OAUTH_CLIENT_SECRETS_JSON_B64')
-            if client_config_b64:
-                decoded = base64.b64decode(client_config_b64).decode('utf-8')
-                client_config = json.loads(decoded)
-                flow = InstalledAppFlow.from_client_config(client_config, SCOPES)
-            else:
-                client_config_json = os.getenv('GOOGLE_OAUTH_CLIENT_SECRETS_JSON')
-                if client_config_json:
-                    client_config = json.loads(client_config_json)
-                    flow = InstalledAppFlow.from_client_config(client_config, SCOPES)
-                else:
-                    client_secrets_path = os.getenv('GOOGLE_OAUTH_CLIENT_SECRETS_FILE', 'credentials.json')
-                    flow = InstalledAppFlow.from_client_secrets_file(client_secrets_path, SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', SCOPES)
             creds = flow.run_local_server(port=0)
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)
@@ -222,7 +234,7 @@ def save_call_summary(call_sid, phone_number, duration, summary):
 # Store call summaries in memory (in case Google Sheets fails)
 call_summaries = {}
 
-def get_chatgpt_response(user_input):
+def get_chatgpt_response(user_input, history=None):
     try:
         logger.debug(f"Processing input: {user_input}")
         
@@ -232,33 +244,88 @@ def get_chatgpt_response(user_input):
             if question in user_input_lower:
                 return response
 
+        # (Removed) keyword short-circuit for services to ensure dynamic, JSON-driven answers
+
         # Check cache
         cached_response = get_cached_response(user_input)
         if cached_response:
             logger.debug("Returning cached response")
             return cached_response
 
-        # Create a more concise prompt
-        prompt = f"""You are a customer service rep for {IM_SOLUTIONS_DATA['company_info']['name']}. 
-Answer this question briefly (max 6 lines): {user_input}
+        # Prepare recent context (last few user/bot turns)
+        formatted_context = ''
+        if history and isinstance(history, list):
+            tail = history[-6:]
+            lines = []
+            for h in tail:
+                role = h.get('role', 'user')
+                content = h.get('content', '')
+                if content:
+                    lines.append(f"{role.capitalize()}: {content}")
+            if lines:
+                formatted_context = "\n\nRecent conversation (most recent last):\n" + "\n".join(lines)
 
-Company Info:
-- Type: {IM_SOLUTIONS_DATA['company_info']['type']}
-- Founded: {IM_SOLUTIONS_DATA['company_info']['founded']}
-- Location: {IM_SOLUTIONS_DATA['company_info']['location']}
+        # Contact and company details from JSON
+        contact = IM_SOLUTIONS_DATA.get('contact', {}).get('corporate_office', {})
+        phone = contact.get('phone', '')
+        email = contact.get('email', '')
+        address = contact.get('address', '')
+        website = IM_SOLUTIONS_DATA.get('website', '') if isinstance(IM_SOLUTIONS_DATA, dict) else ''
 
-Services: {', '.join(IM_SOLUTIONS_DATA['services']['online_services'][:5])} and more.
+        # Extract dynamic knowledge from JSON
+        services_online = IM_SOLUTIONS_DATA.get('services', {}).get('online_services', [])
+        services_offline = IM_SOLUTIONS_DATA.get('services', {}).get('offline_services', [])
+        case_studies = IM_SOLUTIONS_DATA.get('case_studies', []) if isinstance(IM_SOLUTIONS_DATA.get('case_studies', []), list) else []
+        case_snippets = []
+        for cs in case_studies[:3]:
+            name = cs.get('client', 'Client')
+            win = cs.get('result', '')
+            brief = cs.get('summary', '')
+            if win or brief:
+                case_snippets.append(f"- {name}: {win or brief}")
+        knowledge_block = f"""
+Knowledge:
+- Online services: {', '.join(services_online)}
+- Offline services: {', '.join(services_offline)}
+- Case studies:
+{chr(10).join(case_snippets) if case_snippets else '- (no case studies listed)'}
+- Contact: phone {phone}, email {email}, address {address}, website {website}
+"""
 
-Be brief, helpful, and professional. Do not include contact information or website details in your response. If question is unrelated to {IM_SOLUTIONS_DATA['company_info']['name']}, politely redirect to our services."""
+        # Create concise, witty prompt with JSON-powered facts
+        prompt = f"""You are a witty, professional assistant for {IM_SOLUTIONS_DATA['company_info']['name']}.
+
+Tone and style:
+- Short, funny, and encouraging. Use simple English.
+- HARD LIMIT: 1–3 sentences total.
+- Connect to the user's previous questions when helpful.
+- Offer one short follow-up question.
+- Always include 1–3 relevant emojis in every reply (no more than 3).
+
+Company facts:
+- Type: {IM_SOLUTIONS_DATA['company_info']['type']} | Founded: {IM_SOLUTIONS_DATA['company_info']['founded']} | Location: {IM_SOLUTIONS_DATA['company_info']['location']}
+- Top services: {', '.join(IM_SOLUTIONS_DATA['services']['online_services'][:6])}
+
+{knowledge_block}
+User question: {user_input}
+{formatted_context}
+
+Instructions:
+- Answer using the Knowledge section above (treat it as your source of truth).
+- If the question is off-topic, gently steer back to our services with humor.
+- End with a tiny prompt that invites the next step."""
 
         response = model.generate_content(prompt)
         
         logger.debug(f"Received response from Gemini")
         reply = response.text.strip()
         reply = reply.replace('*', '')
-        # Limit to 6 lines
-        lines = reply.splitlines()
-        reply = '\n'.join(lines[:6])
+        
+        # Enforce ultra-short replies: max 3 sentences
+        import re
+        compact = re.sub(r"\s+", " ", reply)
+        sentences = re.split(r"(?<=[.!?])\s+", compact)
+        reply = " ".join(sentences[:3]).strip()
 
         # Cache the response
         cache_response(user_input, reply)
@@ -267,10 +334,13 @@ Be brief, helpful, and professional. Do not include contact information or websi
     except Exception as e:
         error_msg = f"Error calling Gemini API: {str(e)}"
         logger.error(error_msg)
-        return f"I apologize for the inconvenience, but I'm currently experiencing some technical difficulties. Please try again in a moment."
+        return f"Oops! 🤖 My marketing brain glitched for a sec. Give me a moment and try that again! 🔄"
 
 @app.route('/')
 def index():
+    # Ensure each browser session has a stable session_id
+    if not session.get('session_id'):
+        session['session_id'] = f"session_{int(time.time())}_{random.randint(1000,9999)}"
     return render_template('index.html')
 
 def login_required(view_func):
@@ -306,13 +376,33 @@ def send_message():
     try:
         user_message = request.json['message']
         logger.debug(f"Received message from user: {user_message}")
-        bot_response = get_chatgpt_response(user_message)
+        
+        # Maintain a short rolling history in session for context
+        chat_hist = session.get('chat_history', [])
+        chat_hist.append({'role': 'user', 'content': user_message})
+        session['chat_history'] = chat_hist[-10:]
+        
+        bot_response = get_chatgpt_response(user_message, history=session.get('chat_history', []))
+        # If user asked about blogs explicitly, send a recent list for clarity
+        try:
+            if 'blog' in user_message.lower():
+                bot_response = _recent_blogs_reply()
+        except Exception:
+            pass
         logger.debug(f"Sending response to user: {bot_response}")
+        
+        # Append bot turn
+        chat_hist = session.get('chat_history', [])
+        chat_hist.append({'role': 'assistant', 'content': bot_response})
+        session['chat_history'] = chat_hist[-10:]
         
         # Store conversation in Firebase
         if rtdb_available:
             try:
                 conversation_id = str(uuid.uuid4())
+                user_name = session.get('name') or request.json.get('user_details', {}).get('name') or 'Anonymous'
+                user_email = session.get('email') or request.json.get('user_details', {}).get('email') or ''
+                user_phone = session.get('phone') or request.json.get('user_details', {}).get('phone') or ''
                 conversation_data = {
                     'id': conversation_id,
                     'user_message': user_message,
@@ -320,9 +410,9 @@ def send_message():
                     'timestamp': int(time.time() * 1000),
                     'session_id': session.get('session_id', 'default'),
                     'user_details': {
-                        'name': session.get('name', 'Anonymous'),
-                        'email': session.get('email', ''),
-                        'phone': session.get('phone', '')
+                        'name': user_name,
+                        'email': user_email,
+                        'phone': user_phone
                     }
                 }
                 
@@ -508,27 +598,13 @@ def cancel_appointment():
 
         # Persist back CSV file if we loaded any
         if appointments_list:
-            # Clean rows: remove unexpected keys (like None) and ensure all fieldnames exist
-            cleaned_rows = []
-            for row in appointments_list:
-                if isinstance(row, dict):
-                    # Remove stray None key produced by csv.DictReader when there are extra columns
-                    if None in row:
-                        try:
-                            del row[None]
-                        except Exception:
-                            pass
-                    # Ensure all expected keys exist
-                    for k in ['id', 'title', 'time', 'notes', 'status', 'user_name', 'user_email', 'user_phone', 'user_company']:
-                        row.setdefault(k, '')
-                    cleaned_rows.append(row)
             with open('appointments.csv', 'w', newline='', encoding='utf-8') as f:
                 writer = csv.DictWriter(
                     f,
-                    fieldnames=['id', 'title', 'time', 'notes', 'status', 'user_name', 'user_email', 'user_phone', 'user_company']
+                    fieldnames=['id', 'title', 'time', 'notes', 'status', 'user_name', 'user_email', 'user_phone']
                 )
                 writer.writeheader()
-                writer.writerows(cleaned_rows)
+                writer.writerows(appointments_list)
 
         # Update Firebase and fetch latest details
         fb_details = None
@@ -656,20 +732,12 @@ def initiate_call():
         logger.info(f"Attempting to initiate call to {to_number} from {TWILIO_PHONE_NUMBER}")
         logger.info(f"Using Twilio credentials - Account SID: {TWILIO_ACCOUNT_SID[:5]}...")
         
-        # Ensure Twilio is configured
-        if not twilio_client or not TWILIO_PHONE_NUMBER:
-            return jsonify({'success': False, 'message': 'Voice call is not configured. Set TWILIO_* env vars.'}), 503
-
-        public_base_url = os.getenv('PUBLIC_BASE_URL', '').rstrip('/')
-        if not public_base_url:
-            return jsonify({'success': False, 'message': 'PUBLIC_BASE_URL not set for Twilio webhooks.'}), 503
-
         # Make the call using Twilio
         call = twilio_client.calls.create(
             to=to_number,
             from_=TWILIO_PHONE_NUMBER,
-            url=f'{public_base_url}/voice',
-            status_callback=f'{public_base_url}/call-completed',
+            url='https://437f-14-195-161-134.ngrok-free.app/voice',  # Updated ngrok URL
+            status_callback='https://437f-14-195-161-134.ngrok-free.app/call-completed',  # Updated ngrok URL
             status_callback_event=['completed'],
             status_callback_method='POST'
         )
@@ -1091,41 +1159,95 @@ def store_user_data():
     """Store user form data from chatbot"""
     try:
         data = request.get_json()
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        phone = data.get('phone', '').strip()
+        company = data.get('company', '').strip()
+        
+        if not name:
+            return jsonify({'success': False, 'error': 'Name is required'}), 400
+        
+        # If incoming details differ from current session, rotate session_id to isolate conversations
+        if (session.get('name') != name) or (session.get('email') != email) or (session.get('phone') != phone):
+            session['session_id'] = f"session_{int(time.time())}_{random.randint(1000,9999)}"
+        
+        # Update server session for future messages
+        session['name'] = name
+        session['email'] = email
+        session['phone'] = phone
+        session['company'] = company
+        if not session.get('session_id'):
+            session['session_id'] = f"session_{int(time.time())}_{random.randint(1000,9999)}"
+        
+        # Create user data entry
         user_data = {
-            'name': data.get('name'),
-            'email': data.get('email'),
-            'phone': data.get('phone', ''),
-            'company': data.get('company', ''),
-            'timestamp': datetime.now().isoformat(),
-            'source': 'chatbot_form'
+            'name': name,
+            'email': email,
+            'phone': phone,
+            'company': company,
+            'created_at': int(time.time() * 1000),  # Use timestamp in milliseconds
+            'last_interaction': int(time.time() * 1000),
+            'source': 'existing'
         }
         
-        # Store in Firebase if available and increment a simple counter node for total users
+        # Store in Firebase if available (no conversation backfill)
         if rtdb_available:
             try:
-                # Store in users node
+                # Store in users collection with source 'existing'
                 users_ref = fb_db.reference('users')
-                users_ref.push(user_data)
-                logger.info(f"User data stored in Firebase: {user_data['email']}")
-                # Increment total_users counter (atomic transaction)
-                def _incr_counter(current):
-                    if current is None:
-                        return 1
-                    try:
-                        return int(current) + 1
-                    except Exception:
-                        return 1
-                fb_db.reference('metrics/total_users').transaction(_incr_counter)
+                user_id = f"user_{int(time.time())}_{random.randint(1000, 9999)}"
+                users_ref.child(user_id).set(user_data)
+                
+                # Also store in leads collection for dashboard
+                leads_ref = fb_db.reference('leads')
+                lead_id = f"lead_{int(time.time())}_{random.randint(1000, 9999)}"
+                lead_data = {
+                    'id': lead_id,
+                    'name': name,
+                    'email': email,
+                    'phone': phone,
+                    'company': company,
+                    'message': "User registered via chatbot conversation",
+                    'created_at': int(time.time() * 1000),
+                    'source': 'existing'
+                }
+                leads_ref.child(lead_id).set(lead_data)
+                
+                logger.info(f"User data stored successfully: {name}")
+                return jsonify({'success': True, 'user_id': user_id, 'lead_id': lead_id})
+                
             except Exception as e:
-                logger.error(f"Failed to store user data in Firebase: {e}")
+                logger.error(f"Firebase error storing user data: {e}")
+                # Fall back to local storage
+                pass
         
-        # Also store locally for backup
+        # Fallback: Store locally
         try:
-            with open('users_data.json', 'a') as f:
-                f.write(json.dumps(user_data) + '\n')
-        except Exception as e:
-            logger.error(f"Failed to store user data locally: {e}")
+            with open('users_data.json', 'r') as f:
+                users = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            users = []
         
+        # Check if user already exists
+        existing_user = None
+        for user in users:
+            if (user.get('email') == email and email) or (user.get('phone') == phone and phone):
+                existing_user = user
+                break
+        
+        if existing_user:
+            # Update existing user
+            existing_user.update(user_data)
+            existing_user['last_interaction'] = int(time.time() * 1000)
+        else:
+            # Add new user
+            users.append(user_data)
+        
+        # Save to file
+        with open('users_data.json', 'w') as f:
+            json.dump(users, f, indent=2)
+        
+        logger.info(f"User data stored locally: {name}")
         return jsonify({'success': True, 'message': 'User data stored successfully'})
         
     except Exception as e:
@@ -1137,21 +1259,58 @@ def get_users_data():
     """Get all users data for dashboard"""
     try:
         users_data = []
-        
-        # Try to get from Firebase first
+        unique_keys = set()
+
+        def add_user(u: dict):
+            key = u.get('email') or u.get('phone') or u.get('session_id')
+            if key and key not in unique_keys:
+                unique_keys.add(key)
+                users_data.append(u)
+
+        # From conversations (chatbot users)
+        if rtdb_available:
+            try:
+                convs = fb_db.reference('conversations').get() or {}
+                if isinstance(convs, dict):
+                    for _id, c in convs.items():
+                        details = c.get('user_details') or {}
+                        name = details.get('name') or 'Anonymous'
+                        email = details.get('email') or ''
+                        phone = details.get('phone') or ''
+                        ts_ms = c.get('timestamp') or 0
+                        add_user({
+                            'name': name,
+                            'email': email,
+                            'phone': phone,
+                            'company': '',
+                            'timestamp': datetime.fromtimestamp(ts_ms/1000).isoformat() if ts_ms else '',
+                            'source': 'chatbot',
+                            'session_id': c.get('session_id', '')
+                        })
+            except Exception as e:
+                logger.error(f"Failed to read conversations for users: {e}")
+
+        # From users node (chatbot_form)
         if rtdb_available:
             try:
                 users_ref = fb_db.reference('users')
-                firebase_data = users_ref.get()
-                if firebase_data:
+                firebase_data = users_ref.get() or {}
+                if isinstance(firebase_data, dict):
                     for key, value in firebase_data.items():
                         if isinstance(value, dict):
-                            value['id'] = key
-                            users_data.append(value)
+                            add_user({
+                                'name': value.get('name') or 'Anonymous',
+                                'email': value.get('email') or '',
+                                'phone': value.get('phone') or '',
+                                'company': value.get('company') or '',
+                                'timestamp': value.get('timestamp') or value.get('created_at') or '',
+                                'source': value.get('source') or 'chatbot_form',
+                                'session_id': ''
+                            })
             except Exception as e:
                 logger.error(f"Failed to get users data from Firebase: {e}")
         
-        # If no Firebase data, try local file
+        # Local fallback
         if not users_data:
             try:
                 if os.path.exists('users_data.json'):
@@ -1159,7 +1318,8 @@ def get_users_data():
                         for line in f:
                             if line.strip():
                                 user_data = json.loads(line.strip())
-                                users_data.append(user_data)
+                                user_data['source'] = user_data.get('source') or 'chatbot_form'
+                                add_user(user_data)
             except Exception as e:
                 logger.error(f"Failed to read local users data: {e}")
         
@@ -1172,4 +1332,4 @@ def get_users_data():
 if __name__ == '__main__':
     # Create appointments directory if it doesn't exist
     os.makedirs('appointments', exist_ok=True)
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5001) 

@@ -908,33 +908,9 @@
 
     <!-- Floating Chat Button -->
     <div id="chatbot-toggle" class="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50">
-        <button onclick="showUserForm()" class="glow-effect w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xl md:text-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+        <button onclick="openChatbot()" class="glow-effect w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xl md:text-2xl shadow-lg hover:shadow-xl transition-all duration-300">
             <span>💬</span>
         </button>
-    </div>
-
-    <!-- User Form Overlay -->
-    <div id="form-overlay" class="form-overlay">
-        <div class="form-container">
-            <h2 class="form-title">Welcome to IM Solutions!</h2>
-            <p class="form-subtitle">Please share your details to start chatting with our AI assistant</p>
-            
-            <form id="user-form" onsubmit="submitUserForm(event)">
-                <input type="text" id="form-name" class="form-input" placeholder="Your Name *" required>
-                <input type="email" id="form-email" class="form-input" placeholder="Email Address *" required>
-                <input type="tel" id="form-phone" class="form-input" placeholder="Phone Number (Optional)">
-                <textarea id="form-company" class="form-input" placeholder="Company Name (Optional)" rows="2"></textarea>
-                
-                <button type="submit" class="form-button">
-                    <span id="submit-text">Start Chatting</span>
-                    <span id="submit-loading" class="loading-spinner" style="display: none;"></span>
-                </button>
-                
-                <button type="button" onclick="closeUserForm()" class="form-button secondary">
-                    Maybe Later
-                </button>
-            </form>
-        </div>
     </div>
 
     <!-- Chatbot Window (hidden by default) -->
@@ -961,7 +937,7 @@
         <div id="chat-messages" class="flex-1 overflow-y-auto mb-4 mx-4 p-4" style="scroll-behavior: smooth; min-height: 0;">
             <div class="message bot-message">
                 <div class="flex items-start justify-between">
-                    <span class="flex-1">Hey there! 👋 I'm your IM Solutions AI buddy. Ready to rock your business growth? Let's chat about digital marketing, ads, or anything else on your mind! 🚀</span>
+                    <span class="flex-1">Hey there, marketing rockstar! 🚀 I'm your IM Solutions AI buddy, ready to help you with digital marketing, SEO, social media, and more! What can I help you with today? ✨</span>
                     <button onclick="readMessage(this)" class="read-btn ml-2" title="Read message">🔊</button>
             </div>
         </div>
@@ -983,15 +959,6 @@
             </div>
         </div>
         
-        <div class="mb-3 flex flex-wrap gap-1 px-4" id="quick-btns">
-            <button class="quick-btn" id="btn-whatwedo" onclick="sendQuick('What we do', 'btn-whatwedo')">What we do</button>
-            <button class="quick-btn" id="btn-services" onclick="sendQuick('Services', 'btn-services')">Services</button>
-            <button class="quick-btn" id="btn-aboutus" onclick="sendQuick('About Us', 'btn-aboutus')">About Us</button>
-            <button class="quick-btn" id="btn-schedule" onclick="showSchedulingForm()">Schedule Meeting</button>
-            <button class="quick-btn" id="btn-cancel" onclick="showCancelForm()">Cancel Appointment</button>
-            <button class="quick-btn" id="btn-lead" onclick="showLeadForm()">Share Contact</button>
-        </div>
-        
         <!-- Cancel Appointment Form -->
         <div id="cancel-form" class="scheduling-form">
             <div class="flex justify-between items-center mb-6">
@@ -1004,35 +971,6 @@
             <div class="flex justify-end space-x-3">
                 <button onclick="cancelCancelForm()" class="form-button secondary">Cancel</button>
                 <button onclick="submitCancellation()" class="form-button">Cancel Appointment</button>
-            </div>
-        </div>
-
-        <div id="user-details-form" class="scheduling-form">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="font-bold text-xl text-white">Welcome! Please share your details</h3>
-                <button onclick="skipUserDetails()" class="text-gray-400 hover:text-white">✕</button>
-            </div>
-            <input type="text" id="user-name" placeholder="Your Name" class="form-input">
-            <input type="email" id="user-email" placeholder="Email" class="form-input">
-            <input type="tel" id="user-phone" placeholder="Phone" class="form-input">
-            <div class="flex justify-end space-x-3">
-                <button onclick="skipUserDetails()" class="form-button secondary">Skip</button>
-                <button onclick="submitUserDetails()" class="form-button">Continue</button>
-            </div>
-        </div>
-        
-        <div id="lead-form" class="scheduling-form">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="font-bold text-xl text-white">Share your contact</h3>
-                <button onclick="cancelLeadForm()" class="text-gray-400 hover:text-white">✕</button>
-            </div>
-            <input type="text" id="lead-name" placeholder="Your Name" class="form-input">
-            <input type="email" id="lead-email" placeholder="Email" class="form-input">
-            <input type="tel" id="lead-phone" placeholder="Phone" class="form-input">
-            <textarea id="lead-message" placeholder="How can we help?" class="form-input" rows="3"></textarea>
-            <div class="flex justify-end space-x-3">
-                <button onclick="cancelLeadForm()" class="form-button secondary">Cancel</button>
-                <button onclick="submitLead()" class="form-button">Submit</button>
             </div>
         </div>
 
@@ -1058,6 +996,10 @@
         let sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         let userDetails = null;
         let chatbotOpened = false;
+        let chatCount = 0; // Track number of user messages
+        let dataCollectionMode = false; // Will be activated after 2 chats
+        let dataCollectionStep = 0;
+        let appointmentFlow = { active: false, step: 0, data: {} };
 
         // Initialize FullCalendar
         document.addEventListener('DOMContentLoaded', function() {
@@ -1152,7 +1094,7 @@
             const notes = document.getElementById('appointment-notes').value;
 
             if (!title || !time) {
-                addMessage('Oops! Missing some deets. Please fill in the title and time! 📝', false);
+                addMessage('😅 Missing title or time! Please fill both fields. 📝', false);
                 return;
             }
 
@@ -1180,9 +1122,9 @@
                 if (status === 409) {
                     // Handle double-booking error
                     const existingTime = new Date(data.existing_appointment.time).toLocaleString();
-                    addMessage(`Time slot's taken! "${data.existing_appointment.title}" beat you to it at ${existingTime}. Pick another time! ⏰`, false);
+                    addMessage(`⏰ Time slot taken! "${data.existing_appointment.title}" at ${existingTime}. Pick another time! ✨`, false);
                 } else if (data.error) {
-                    addMessage(`Uh-oh! ${data.error} 😅`, false);
+                    addMessage(`😅 ${data.error} Let's try again! 🔄`, false);
                 } else {
                     // Add event to calendar
                     calendar.addEvent({
@@ -1193,13 +1135,13 @@
                             appointmentId: data.appointment_id
                         }
                     });
-                    addMessage(`Boom! 🎯 Appointment locked in! Your ID: ${data.appointment_id}. We'll see you there!`, false);
+                    addMessage(`🎯 Appointment scheduled! ID: ${data.appointment_id}. See you there! 🚀`, false);
                     cancelScheduling();
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                addMessage('Oops! Something went wrong. Let\'s try that again! 🔄', false);
+                addMessage('😅 Something went wrong. Let\'s try again! 🔄', false);
             });
         }
 
@@ -1247,7 +1189,7 @@
             loadingDiv = document.createElement('div');
             loadingDiv.className = 'message bot-message';
             loadingDiv.id = 'loading-animation';
-            loadingDiv.innerHTML = '<span id="dots">Thinking...</span>';
+            loadingDiv.innerHTML = '<span id="dots">🤔 Thinking...</span>';
             chatMessages.appendChild(loadingDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
             animateDots();
@@ -1260,7 +1202,7 @@
             clearInterval(dotsInterval);
             dotsInterval = setInterval(() => {
                 dotCount = (dotCount + 1) % 4;
-                dotsSpan.textContent = 'Thinking' + '.'.repeat(dotCount);
+                dotsSpan.textContent = '🤔 Thinking' + '.'.repeat(dotCount);
             }, 500);
         }
 
@@ -1279,17 +1221,57 @@
             addMessage(message, true);
             userInput.value = '';
 
+            // Increment chat count
+            chatCount++;
+
             // If we are in lead capture flow, handle locally
             if (leadCapture.active) {
                 handleLeadMessage(message);
                 return;
             }
 
-            // Detect intent to share contact and start flow
+            // If we are in data collection mode, handle that first
+            if (dataCollectionMode) {
+                handleDataCollection(message);
+                return;
+            }
+
+            // Conversational appointment flow interception
+            if (appointmentFlow.active) {
+                if (handleAppointmentFlow(message)) {
+                    return;
+                }
+            }
+
+            // Check if it's time to ask for user details (after every 2nd chat)
+            if (chatCount % 2 === 0 && chatCount > 0 && !userDetails) {
+                startDataCollection();
+                return;
+            }
+
+            // Check if user wants to share contact info or work with us
             const msgLower = message.toLowerCase();
-            const leadTriggers = ['contact', 'work with us', 'get in touch', 'talk to sales', 'quote', 'call me', 'hire you', 'reach out'];
-            if (leadTriggers.some(t => msgLower.includes(t))) {
-                startLeadFlow();
+            const contactTriggers = ['contact', 'share contact', 'work with us', 'get in touch', 'talk to sales', 'quote', 'call me', 'hire you', 'reach out', 'interested', 'help me', 'pricing', 'start project'];
+            
+            if (contactTriggers.some(t => msgLower.includes(t))) {
+                // If we don't have details yet, start collection; otherwise, no extra message
+                if (!userDetails || (!userDetails.email && !userDetails.phone)) {
+                    startDataCollection();
+                }
+                return;
+            }
+
+            // Detect appointment scheduling intent
+            const appointmentTriggers = ['schedule', 'appointment', 'meeting', 'book', 'calendar', 'time slot'];
+            if (appointmentTriggers.some(t => msgLower.includes(t))) {
+                startAppointmentFlow();
+                return;
+            }
+
+            // Detect appointment cancellation intent
+            const cancelTriggers = ['cancel', 'reschedule', 'change appointment'];
+            if (cancelTriggers.some(t => msgLower.includes(t))) {
+                showCancelForm();
                 return;
             }
 
@@ -1314,8 +1296,156 @@
             .catch(error => {
                 hideLoading();
                 console.error('Error:', error);
-                addMessage('Oops! Something went wrong. Let\'s try again! 🔄', false);
+                addMessage('😅 Something went wrong. Let\'s try again! 🔄', false);
             });
+        }
+
+        // Data collection functions
+        function startDataCollection() {
+            dataCollectionMode = true;
+            dataCollectionStep = 0;
+            addMessage("🎯 Awesome! Quick favor—so I can help you like a true marketing sidekick, what should I call you? First name or first + last is perfect. I promise I'll only use it for good. ✨", false);
+        }
+
+        function handleDataCollection(message) {
+            const text = message.trim();
+            
+            if (dataCollectionStep === 0) {
+                // Name validation - only accept 1-2 words
+                const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+                
+                if (wordCount === 0) {
+                    addMessage("😅 Even superheroes need a name! Share yours so I can personalize the journey for you. 📝", false);
+                    return;
+                } else if (wordCount > 2) {
+                    addMessage("😅 That's a grand title! Could you share just your first name, or first + last (max 2 words)? Keeps things friendly and neat. 📝", false);
+                    return;
+                }
+                
+                // Validate name contains only letters, spaces, and common name characters
+                const nameRegex = /^[a-zA-Z\s\-'\.]+$/;
+                if (!nameRegex.test(text)) {
+                    addMessage("😅 I'm picking up some extra characters there. Use only letters, spaces, hyphens, apostrophes, or periods. 📝", false);
+                    return;
+                }
+                
+                userDetails = { name: text };
+                dataCollectionStep = 1;
+                
+                // Immediately set session with the user's name so conversations use it
+                try {
+                    fetch('/set_user_session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: text, email: '', phone: '', company: '' })
+                    }).catch(() => {});
+                } catch (e) {}
+                
+                addMessage(`🌟 Fantastic, ${text}! Next up—what's the best email to reach you? I'll use it to send relevant updates and zero spam. 📧 (You can type 'skip' if you prefer phone)` , false);
+                return;
+            }
+            
+            if (dataCollectionStep === 1) {
+                if (text.toLowerCase() === 'skip') {
+                    userDetails.email = '';
+                    dataCollectionStep = 2;
+                    addMessage("📱 Great! In that case, what's a good phone number? I'll only reach out with useful, human-approved updates. 📞 (or type 'skip')", false);
+                    return;
+                }
+                
+                // Basic email validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(text)) {
+                    addMessage("😅 That email felt a bit shy. Could you share a valid one like name@company.com? Or type 'skip' if you'd prefer phone. 📧", false);
+                    return;
+                }
+                
+                userDetails.email = text;
+                dataCollectionStep = 2;
+                addMessage("📱 Perfect! And your phone number? I won't spam—just helpful follow-ups if needed. 📞 (or type 'skip')", false);
+                return;
+            }
+            
+            if (dataCollectionStep === 2) {
+                if (text.toLowerCase() === 'skip') {
+                    userDetails.phone = '';
+                } else {
+                    // Basic phone validation - accept various formats
+                    const phoneRegex = /^[\+]?[0-9\s\-\(\)\.]{7,}$/;
+                    if (!phoneRegex.test(text)) {
+                        addMessage("😅 My marketing senses are tingling—could you share a valid phone number? Formats like +91 98765 43210 work great. Or type 'skip'. 📞", false);
+                        return;
+                    }
+                    userDetails.phone = text;
+                }
+                
+                // Require at least one contact method
+                if (!userDetails.email && !userDetails.phone) {
+                    addMessage(`Heads up, ${userDetails.name}! I'll need either an email or a phone number so our team can reach you with the good stuff. 📞📧`, false);
+                    dataCollectionStep = 1;
+                    return;
+                }
+                
+                dataCollectionStep = 3;
+                addMessage("💼 Final touch—what's your company name? If you're solo or prefer not to share, just type 'skip'. 🏢", false);
+                return;
+            }
+            
+            if (dataCollectionStep === 3) {
+                if (text.toLowerCase() !== 'skip') {
+                    userDetails.company = text;
+                }
+                
+                // Complete data collection
+                completeDataCollection();
+            }
+        }
+
+        function completeDataCollection() {
+            // Store user details in sessionStorage
+            sessionStorage.setItem('current_user', JSON.stringify(userDetails));
+            
+            // Send to backend
+            fetch('/store_user_data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userDetails)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Also set user details into Flask session so conversations carry the name/email/phone
+                    fetch('/set_user_session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: userDetails.name || '',
+                            email: userDetails.email || '',
+                            phone: userDetails.phone || '',
+                            company: userDetails.company || ''
+                        })
+                    }).catch(() => {});
+                    
+                    addMessage(`🎉 Perfect, ${userDetails.name}! We'll be in touch soon! ✨\n\nWhat else can I help you with? 🚀`, false);
+                } else {
+                    addMessage(`😅 ${data.error || 'Something went wrong.'} But no worries, let's continue! What can I help you with? 🚀`, false);
+                }
+            })
+            .catch(error => {
+                console.error('Error storing user data:', error);
+                addMessage(`🎉 Great, ${userDetails.name}! We've got your details! ✨\n\nWhat else can I help you with? 🚀`, false);
+            });
+            
+            // Reset data collection mode
+            dataCollectionMode = false;
+            dataCollectionStep = 0;
+        }
+
+        function storeUserDataInBackend() {
+            // This function is no longer needed - data is stored directly in completeDataCollection
+            console.log('User data storage moved to completeDataCollection function');
         }
 
         userInput.addEventListener('keypress', function(e) {
@@ -1345,23 +1475,25 @@
             if (initialMessage) {
                 initialMessage.innerHTML = `
                     <div class="flex items-start justify-between">
-                        <span class="flex-1">Hey there! 👋 I'm your IM Solutions AI buddy. Ready to rock your business growth? Let's chat about digital marketing, ads, or anything else on your mind! 🚀</span>
+                        <span class="flex-1">Hey there, marketing rockstar! 🚀 I'm your IM Solutions AI buddy, ready to help you with digital marketing, SEO, social media, and more! What can I help you with today? ✨</span>
                         <button onclick="readMessage(this)" class="read-btn ml-3" title="Read message">🔊</button>
                     </div>
                 `;
             }
             
-            // Reset quick buttons visibility
-            const quickBtns = document.querySelectorAll('.quick-btn');
-            quickBtns.forEach(btn => btn.style.display = '');
+            // Reset all state variables
+            userDetails = null;
+            chatCount = 0;
+            dataCollectionMode = false;
+            dataCollectionStep = 0;
+            appointmentFlow = { active: false, step: 0, data: {} };
+            
             // Clear input field
             document.getElementById('user-input').value = '';
             // Hide any open forms
             document.getElementById('scheduling-form').style.display = 'none';
             document.getElementById('cancel-form').style.display = 'none';
             document.getElementById('calendar-container').style.display = 'none';
-            document.getElementById('lead-form').style.display = 'none';
-            document.getElementById('user-details-form').style.display = 'none';
             leadCapture = { active: false, step: 0, data: {} };
             
             // Reset text-to-speech state
@@ -1396,139 +1528,23 @@
 
         // Add keyboard shortcuts
         document.addEventListener('keydown', function(e) {
-            // Escape key to close forms
+            // Escape key to close chatbot
             if (e.key === 'Escape') {
-                if (document.getElementById('form-overlay').style.display === 'block') {
-                    closeUserForm();
-                } else if (!document.getElementById('chatbot-window').classList.contains('hidden')) {
+                if (!document.getElementById('chatbot-window').classList.contains('hidden')) {
                     closeChatbot();
                 }
             }
         });
 
-        function sendQuick(message, btnId) {
-            document.getElementById('user-input').value = message;
-            sendMessage();
-            if (btnId) {
-                const btn = document.getElementById(btnId);
-                if (btn) btn.style.display = 'none';
-            }
-        }
-
-        function showLeadForm() {
-            const form = document.getElementById('lead-form');
-            form.style.display = 'block';
-        }
-
-        function cancelLeadForm() {
-            const form = document.getElementById('lead-form');
-            form.style.display = 'none';
-            document.getElementById('lead-name').value = '';
-            document.getElementById('lead-email').value = '';
-            document.getElementById('lead-phone').value = '';
-            document.getElementById('lead-message').value = '';
-        }
-
-        function submitLead() {
-            const name = document.getElementById('lead-name').value.trim();
-            const email = document.getElementById('lead-email').value.trim();
-            const phone = document.getElementById('lead-phone').value.trim();
-            const message = document.getElementById('lead-message').value.trim();
-
-            if (!name || (!email && !phone)) {
-                addMessage('Hey! We need your name and at least one way to reach you (email or phone). Let\'s make it happen! 📱', false);
-                return;
-            }
-
-            fetch('/create_lead', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, phone, message })
-            })
-            .then(res => res.json().then(data => ({ status: res.status, data })))
-            .then(({ status, data }) => {
-                if (data.success) {
-                    addMessage('Awesome! 🎉 Your contact is in our system. We\'ll reach out soon with some magic! ✨', false);
-                    cancelLeadForm();
-                } else {
-                    addMessage(`Oops! ${data.message || 'Something went wrong.'} Let\'s try again! 🔄`, false);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                addMessage('Network hiccup! Let\'s try submitting your contact again! 🌐', false);
-            });
-        }
-
         // Conversational Lead Capture Flow
         function startLeadFlow() {
-            if (leadCapture.active) return;
-            leadCapture = { active: true, step: 0, data: {} };
-            addMessage("Sweet! Let's get you connected with our team! What's your name? 🎯", false);
+            // This function is now replaced by startDataCollection
+            startDataCollection();
         }
 
         function handleLeadMessage(text) {
-            const t = text.trim();
-            if (!t) return;
-            if (leadCapture.step === 0) {
-                leadCapture.data.name = t;
-                leadCapture.step = 1;
-                addMessage(`Nice to meet you, ${t}! What's your email? (or type 'skip' if you prefer) 📧`, false);
-                return;
-            }
-            if (leadCapture.step === 1) {
-                if (t.toLowerCase() !== 'skip') {
-                    leadCapture.data.email = t;
-                }
-                leadCapture.step = 2;
-                addMessage("Got it! Phone number? (or 'skip' if you want) 📱", false);
-                return;
-            }
-            if (leadCapture.step === 2) {
-                if (t.toLowerCase() !== 'skip') {
-                    leadCapture.data.phone = t;
-                }
-                // Require at least one contact
-                if (!leadCapture.data.email && !leadCapture.data.phone) {
-                    addMessage("We need at least one way to reach you! Email or phone, your choice! 📞", false);
-                    leadCapture.step = 1;
-                    return;
-                }
-                leadCapture.step = 3;
-                addMessage("Any message for us? (or 'skip' to submit now) 💬", false);
-                return;
-            }
-            if (leadCapture.step === 3) {
-                if (t.toLowerCase() !== 'skip') {
-                    leadCapture.data.message = t;
-                }
-                // Submit lead
-                const payload = {
-                    name: leadCapture.data.name || '',
-                    email: leadCapture.data.email || '',
-                    phone: leadCapture.data.phone || '',
-                    message: leadCapture.data.message || ''
-                };
-                fetch('/create_lead', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                })
-                .then(res => res.json().then(data => ({ status: res.status, data })))
-                .then(({ status, data }) => {
-                    if (data.success) {
-                        addMessage("Perfect! 🎯 Your details are with our team. We'll hit you up soon with some awesome stuff! 🚀", false);
-                    } else {
-                        addMessage(`Bummer! ${data.message || 'Something went wrong.'} Let's try again later! 😅`, false);
-                    }
-                })
-                .catch(() => {
-                    addMessage('Network glitch! We\'ll try again later! 🌐', false);
-                })
-                .finally(() => {
-                    leadCapture = { active: false, step: 0, data: {} };
-                });
-            }
+            // This function is now replaced by handleDataCollection
+            handleDataCollection(text);
         }
 
         function showCancelForm() {
@@ -1546,7 +1562,7 @@
             const appointmentId = document.getElementById('appointment-id').value.trim();
 
             if (!appointmentId) {
-                addMessage('Hey! We need that appointment ID to help you out! 🔍', false);
+                addMessage('🔍 We need the appointment ID! 📝', false);
                 return;
             }
 
@@ -1562,17 +1578,17 @@
             .then(response => response.json().then(data => ({ status: response.status, data })))
             .then(({ status, data }) => {
                 if (status === 404) {
-                    addMessage(`Oops! ${data.error} 🤷‍♂️`, false);
+                    addMessage(`🤷‍♂️ ${data.error} 😅`, false);
                 } else if (data.error) {
-                    addMessage(`Uh-oh! ${data.error} 😅`, false);
+                    addMessage(`😅 ${data.error} Let's try again! 🔄`, false);
                 } else {
-                    addMessage(`Done! ✅ Appointment ${data.appointment_id} is cancelled. We'll miss you! 😢`, false);
+                    addMessage(`✅ Appointment ${data.appointment_id} cancelled! 😢`, false);
                     cancelCancelForm();
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                addMessage('Something went wrong! Let\'s try cancelling again! 🔄', false);
+                addMessage('😅 Something went wrong! Let\'s try again! 🔄', false);
             });
         }
 
@@ -1599,7 +1615,7 @@
                     console.error('Speech recognition error:', event.error);
                     isListening = false;
                     document.getElementById('voice-btn').classList.remove('active');
-                    addMessage('Voice recognition hiccup! Let\'s try again! 🎤', false);
+                    addMessage('🎤 Voice recognition issue! Let\'s try again! 💪', false);
                 };
             } else {
                 console.error('Speech recognition not supported');
@@ -1607,13 +1623,45 @@
             }
         }
 
-        // Initialize speech synthesis
+        // Text-to-Speech helpers (prefer Indian English and strip emojis)
+        let preferredVoice = null;
+        function loadVoicesAndPick() {
+            const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+            if (!voices || !voices.length) return;
+            preferredVoice = voices.find(v => (v.lang && v.lang.toLowerCase() === 'en-in'))
+                || voices.find(v => /india|indian|en-in/i.test(`${v.name} ${v.lang}`))
+                || voices.find(v => /english/i.test(v.lang));
+        }
+        if (window.speechSynthesis) {
+            loadVoicesAndPick();
+            window.speechSynthesis.onvoiceschanged = loadVoicesAndPick;
+        }
+
+        function stripEmojis(text) {
+            try {
+                // Remove common emoji ranges and variation selectors
+                return text.replace(/[\u{1F300}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}\u2600-\u27BF\uFE0F]/gu, '');
+            } catch (e) {
+                return text; // Fallback if regex unsupported
+            }
+        }
+
         function speak(text) {
-            if (speechSynthesis && document.getElementById('voice-btn').classList.contains('active')) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 1.0;
+            if (speechSynthesis && document.getElementById('tts-toggle').textContent === '🔇') {
+                // Stop any ongoing speech
+                speechSynthesis.cancel();
+                
+                const clean = stripEmojis(text).replace(/\s{2,}/g, ' ').trim();
+                const utterance = new SpeechSynthesisUtterance(clean);
+                utterance.rate = 0.95; // natural pace
                 utterance.pitch = 1.0;
                 utterance.volume = 1.0;
+                if (preferredVoice) utterance.voice = preferredVoice;
+                
+                // Personality hooks
+                utterance.onstart = function() { console.log('🎤 Speaking (Indian English preferred)'); };
+                utterance.onend = function() { console.log('🎤 Speech completed'); };
+                
                 speechSynthesis.speak(utterance);
             }
         }
@@ -1640,13 +1688,15 @@
             const voiceBtn = document.getElementById('voice-btn');
 
             if (speechSynthesis) {
-                if (voiceBtn.classList.contains('active')) {
-                    speechSynthesis.cancel(); // Stop any ongoing speech
-                    voiceBtn.classList.remove('active');
-                    ttsToggle.textContent = '🔊'; // Toggle to text
+                if (ttsToggle.textContent === '🔇') {
+                    // Turn off TTS
+                    speechSynthesis.cancel();
+                    ttsToggle.textContent = '🔊';
+                    addMessage("🔇 Text-to-speech turned off! I'll be quiet now! 🤫", false);
                 } else {
-                    voiceBtn.classList.add('active');
-                    ttsToggle.textContent = '🔇'; // Toggle to speech
+                    // Turn on TTS
+                    ttsToggle.textContent = '🔇';
+                    addMessage("🔊 Text-to-speech activated! I'll speak with personality! 🎤✨", false);
                 }
             } else {
                 console.error('Speech synthesis not supported');
@@ -1655,158 +1705,230 @@
             }
         }
 
-        // User Details Functions
-        function showUserDetailsForm() {
-            const form = document.getElementById('user-details-form');
-            form.style.display = 'block';
-        }
-
-        function skipUserDetails() {
-            const form = document.getElementById('user-details-form');
-            form.style.display = 'none';
-            userDetails = { name: 'Anonymous', email: '', phone: '' };
-            addMessage('Hey Anonymous! 👋 How can I help you today?', false);
-        }
-
-        function submitUserDetails() {
-            const name = document.getElementById('user-name').value.trim();
-            const email = document.getElementById('user-email').value.trim();
-            const phone = document.getElementById('user-phone').value.trim();
-
-            if (!name) {
-                addMessage('Hey! We need your name to continue! 📝', false);
-                return;
-            }
-
-            userDetails = { name, email, phone };
-            const form = document.getElementById('user-details-form');
-            form.style.display = 'none';
-            
-            addMessage(`Awesome, ${name}! 🎉 What can I help you with today?`, false);
-        }
-
-        // User Form Overlay Functions
-        function showUserForm() {
-            document.getElementById('form-overlay').style.display = 'block';
-            document.getElementById('user-form').reset(); // Reset form fields
-            document.getElementById('submit-text').style.display = 'block';
-            document.getElementById('submit-loading').style.display = 'none';
-        }
-
-        function closeUserForm() {
-            document.getElementById('form-overlay').style.display = 'none';
-        }
-
-        function submitUserForm(event) {
-            event.preventDefault();
-            
-            // Show loading state
-            document.getElementById('submit-text').style.display = 'none';
-            document.getElementById('submit-loading').style.display = 'inline-block';
-            
-            const name = document.getElementById('form-name').value.trim();
-            const email = document.getElementById('form-email').value.trim();
-            const phone = document.getElementById('form-phone').value.trim();
-            const company = document.getElementById('form-company').value.trim();
-
-            if (!name || !email) {
-                alert('Please provide your name and email to continue.');
-                // Reset loading state
-                document.getElementById('submit-text').style.display = 'block';
-                document.getElementById('submit-loading').style.display = 'none';
-                return;
-            }
-
-            // Check if user exists
-            checkUserExists(email, name, phone, company);
-        }
-
-        function checkUserExists(email, name, phone, company) {
-            // Store user data in localStorage for demo purposes
-            // In production, this would be stored in your database
-            const existingUsers = JSON.parse(localStorage.getItem('chatbot_users') || '[]');
-            const existingUser = existingUsers.find(user => user.email === email);
-            
-            if (existingUser) {
-                // Returning user
-                userDetails = existingUser;
-                addMessage(`Welcome back, ${name}! 🎉 Great to see you again. How can I help you today?`, false);
-            } else {
-                // New user
-                userDetails = { name, email, phone, company, firstVisit: new Date().toISOString() };
-                existingUsers.push(userDetails);
-                localStorage.setItem('chatbot_users', JSON.stringify(existingUsers));
-                addMessage(`Welcome to the family, ${name}! 🌟 First time here and already making moves. What's on your mind today?`, false);
-                
-                // Store user data in backend for dashboard
-                storeUserDataInBackend(name, email, phone, company);
-            }
-            
-            // Store in session for dashboard
-            sessionStorage.setItem('current_user', JSON.stringify(userDetails));
-            
-            // Also send user data to server session for appointments
-            fetch('/set_user_session', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: name,
-                    email: email,
-                    phone: phone || '',
-                    company: company || ''
-                })
-            })
-            .catch(error => console.log('Session update error:', error));
-            
-            // Close form and open chat
-            setTimeout(() => {
-                document.getElementById('form-overlay').style.display = 'none';
-                openChatbot();
-                
-                // Reset loading state
-                document.getElementById('submit-text').style.display = 'block';
-                document.getElementById('submit-loading').style.display = 'none';
-            }, 500);
-        }
-
-        function storeUserDataInBackend(name, email, phone, company) {
-            fetch('/store_user_data', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: name,
-                    email: email,
-                    phone: phone || '',
-                    company: company || ''
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log('User data stored successfully');
-                } else {
-                    console.error('Failed to store user data:', data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error storing user data:', error);
-            });
-        }
-
         function openChatbot() {
             const chatWindow = document.getElementById('chatbot-window');
             chatWindow.classList.remove('hidden');
             chatWindow.style.display = 'flex';
-            
-            // Focus on input
             setTimeout(() => {
                 document.getElementById('user-input').focus();
             }, 100);
         }
+
+        // Conversational appointment scheduling
+        function startAppointmentFlow() {
+            if (appointmentFlow.active) return;
+            appointmentFlow = { active: true, step: 0, data: {} };
+            addMessage("🗓️ Let's get this on the calendar! What's the meeting title? (e.g., 'SEO Strategy Jam')", false);
+        }
+
+        async function fetchBookedTimesSet() {
+            try {
+                const res = await fetch('/get_appointments');
+                const data = await res.json();
+                const list = (data && data.appointments) ? data.appointments : [];
+                const set = new Set();
+                list.forEach(a => {
+                    if (a && a.time) {
+                        try {
+                            const iso = new Date(a.time).toISOString();
+                            set.add(iso);
+                        } catch (e) {
+                            // Fallback: best effort
+                            set.add(a.time);
+                        }
+                    }
+                });
+                return set;
+            } catch { return new Set(); }
+        }
+
+        function renderSlotGrid(options, bookedSet) {
+            // Build date -> slots map
+            const byDate = {};
+            options.forEach((opt, idx) => {
+                const parts = opt.label.split(' • ');
+                const dateLabel = parts[0];
+                const timeLabel = parts[1] || '';
+                if (!byDate[dateLabel]) byDate[dateLabel] = [];
+                byDate[dateLabel].push({ idx, iso: opt.iso, dateLabel, timeLabel, fullLabel: opt.label });
+            });
+            const dates = Object.keys(byDate);
+            const containerId = 'slot-list-' + Date.now();
+            const selectId = containerId + '-date-select';
+            const listId = containerId + '-list';
+
+            // Header with date dropdown
+            let html = `<div id="${containerId}" style="display:block;margin:12px 12px 4px 12px;">`;
+            html += `
+                <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+                    <label for="${selectId}" style="color:#e5e7eb;font-size:14px;">Select date</label>
+                    <select id="${selectId}" style="flex:1;background:rgba(255,255,255,0.06);color:#e5e7eb;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:8px;">
+                        ${dates.map((d, i) => `<option value="${d}" ${i===0?'selected':''}>${d}</option>`).join('')}
+                    </select>
+                </div>`;
+
+            // Slot list container
+            html += `<div id="${listId}"></div>`;
+            html += '</div>';
+
+            addMessage('Pick a slot below:', false);
+            const lastBot = Array.from(document.querySelectorAll('#chat-messages .bot-message')).pop();
+            if (lastBot) {
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = html;
+                lastBot.appendChild(wrapper.firstChild);
+            }
+
+            const listEl = document.getElementById(listId);
+            const dateSel = document.getElementById(selectId);
+
+            function renderForDate(dateLabel) {
+                if (!listEl) return;
+                const daySlots = byDate[dateLabel] || [];
+                let inner = '';
+                daySlots.forEach(s => {
+                    const isBooked = bookedSet.has(s.iso);
+                    const btnLabel = isBooked ? 'Sold out' : 'Select';
+                    const btnBg = isBooked ? '#d1d5db' : '#ec4899';
+                    const btnCursor = isBooked ? 'not-allowed' : 'pointer';
+                    const btnOpacity = isBooked ? 0.8 : 1;
+                    inner += `
+                    <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+                        <div style="display:flex;flex-direction:column;gap:4px;color:#e5e7eb;">
+                            <div style="font-weight:700;color:#ffffff;">${s.dateLabel}</div>
+                            <div style="font-size:12px;color:#cbd5e1;">${s.timeLabel}</div>
+                        </div>
+                        <button data-idx="${s.idx}" data-iso="${s.iso}" data-booked="${isBooked? '1':'0'}" style="min-width:96px;padding:8px 14px;border:none;border-radius:10px;background:${btnBg};color:#ffffff;cursor:${btnCursor};opacity:${btnOpacity};font-weight:700;">${btnLabel}</button>
+                    </div>`;
+                });
+                listEl.innerHTML = inner || '<div style="color:#cbd5e1;">No slots for this date.</div>';
+            }
+
+            // Initial render
+            renderForDate(dates[0]);
+
+            if (dateSel) {
+                dateSel.addEventListener('change', () => {
+                    renderForDate(dateSel.value);
+                });
+            }
+
+            if (listEl) {
+                listEl.addEventListener('click', (e) => {
+                    const btn = e.target.closest('button[data-iso]');
+                    if (!btn) return;
+                    const isBooked = btn.getAttribute('data-booked') === '1';
+                    const idx = parseInt(btn.getAttribute('data-idx'), 10);
+                    const chosen = options[idx];
+                    if (!chosen) return;
+                    if (isBooked) {
+                        addMessage(`🚫 That slot (${chosen.label}) is already booked. Try another date/time.`, false);
+                        return;
+                    }
+                    addMessage(`✅ That slot (${chosen.label}) is available!`, false);
+                    appointmentFlow.data.timeISO = chosen.iso;
+                    appointmentFlow.step = 2;
+                    addMessage("Any notes for us? (optional — type 'skip') ✍️", false);
+                });
+            }
+        }
+
+        function handleAppointmentFlow(message) {
+            const text = (message || '').trim();
+            if (!appointmentFlow.active) return false;
+
+            // Step 0: Title
+            if (appointmentFlow.step === 0) {
+                if (!text) { addMessage("Give me a short, spicy title ✍️", false); return true; }
+                appointmentFlow.data.title = text;
+                appointmentFlow.step = 1;
+                // Show weekday slots for next 10 days
+                const options = generateSlotsNext10Days();
+                if (!options.length) {
+                    addMessage("Hmm, my calendar is taking the weekend off. Try again on a weekday! 😅", false);
+                    appointmentFlow = { active: false, step: 0, data: {} };
+                    return true;
+                }
+                appointmentFlow.data.slotOptions = options;
+                fetchBookedTimesSet().then(bookedSet => {
+                    renderSlotGrid(options, bookedSet || new Set());
+                });
+                return true;
+            }
+
+            // Step 1 is handled by clicking a slot button
+            if (appointmentFlow.step === 1) {
+                addMessage("Tap one of the green slots above to continue 👆", false);
+                return true;
+            }
+
+            // Step 2: Notes and submit
+            if (appointmentFlow.step === 2) {
+                appointmentFlow.data.notes = (text.toLowerCase() === 'skip') ? '' : text;
+                const payload = {
+                    title: appointmentFlow.data.title,
+                    time: appointmentFlow.data.timeISO,
+                    notes: appointmentFlow.data.notes || ''
+                };
+                showLoading();
+                fetch('/schedule_appointment', {
+                method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(r => r.json())
+            .then(data => {
+                    hideLoading();
+                    if (data && data.appointment_id) {
+                        const when = new Date(appointmentFlow.data.timeISO).toLocaleString();
+                        // Remove the selected slot from the visible list to avoid confusion
+                        try {
+                            const selIso = appointmentFlow.data.timeISO;
+                            const btn = document.querySelector(`button[data-iso="${selIso}"]`);
+                            if (btn) {
+                                const card = btn.closest('div');
+                                if (card && card.parentElement) {
+                                    card.parentElement.removeChild(card);
+                                }
+                            }
+                        } catch (e) {}
+                        addMessage(`✅ Boom! Your slot is locked. ID: ${data.appointment_id}. See you on ${when}. I'll bring the digital donuts 🍩`, false);
+                } else {
+                        addMessage("😅 I fumbled the calendar save. Mind trying again?", false);
+                    }
+                })
+                .catch(() => { hideLoading(); addMessage(`🌐 Tiny network gremlin. Let's try that again!`, false); })
+                .finally(() => { appointmentFlow = { active: false, step: 0, data: {} }; });
+                return true;
+            }
+            return false;
+        }
+
+        function generateSlotsNext10Days() {
+            const slots = [];
+            const daySlots = [
+                { h:9,  m:0,  label:'9:00–10:00 AM' },
+                { h:11, m:0,  label:'11:00–12:00' },
+                { h:13, m:0,  label:'1:00–2:00 PM' },
+                { h:16, m:0,  label:'4:00–5:00 PM' }
+            ];
+            const now = new Date();
+            for (let d = 0; d < 10; d++) {
+                const base = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d);
+                const day = base.getDay(); // 0 Sun, 6 Sat
+                if (day === 0 || day === 6) continue; // skip weekends
+                const dateLabel = base.toLocaleDateString();
+                daySlots.forEach(s => {
+                    const start = new Date(base.getFullYear(), base.getMonth(), base.getDate(), s.h, s.m, 0);
+                    const iso = start.toISOString();
+                    slots.push({ iso, label: `${dateLabel} • ${s.label}` });
+                });
+            }
+            return slots;
+        }
+
+        // Ensure global access for onclick handlers
+        window.openChatbot = openChatbot;
     </script>
 </body>
 </html> 

@@ -1052,13 +1052,13 @@
                                             <td>{{ appointment.notes[:50] + '...' if appointment.notes and appointment.notes|length > 50 else (appointment.notes or 'N/A') }}</td>
                                             <td>{{ appointment.id }}</td>
                                             <td>
-                                                <div class="user-info">
+                                                <div class="user-info" onclick="filterConversationsForUser('{{ appointment.user.email|default('', true) }}','{{ appointment.user.phone|default('', true) }}','{{ appointment.user.name|default('Anonymous User', true) }}')">
                                                     {% if appointment.user and appointment.user.name %}
                                                         <div class="user-header">
                                                             <svg class="user-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                                                                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                                                             </svg>
-                                                            <span class="user-name">{{ appointment.user.name }}</span>
+                                                            <span class="user-name" style="cursor:pointer; text-decoration:underline" onclick="filterConversationsForUser('{{ appointment.user.email|default('', true) }}','{{ appointment.user.phone|default('', true) }}','{{ appointment.user.name|default('Anonymous User', true) }}')">{{ appointment.user.name }}</span>
                                                         </div>
                                                         {% if appointment.user.email %}
                                                             <span class="user-detail">{{ appointment.user.email }}</span>
@@ -1124,34 +1124,55 @@
                         
                         <div class="table-responsive">
                             <div class="table">
-                                <table class="w-full">
-                                    <thead>
-                                        <tr>
-                                            <th>Session ID</th>
-                                            <th>User Message</th>
-                                            <th>Bot Response</th>
-                                            <th>Timestamp</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                <tbody>
+                                <div id="conversation-groups" class="space-y-4">
                                     {% if conversations %}
-                                        {% for conversation in conversations %}
-                                        <tr>
-                                            <td>{{ conversation.session_id[:20] + '...' if conversation.session_id and conversation.session_id|length > 20 else (conversation.session_id or 'N/A') }}</td>
-                                            <td>{{ conversation.user_message[:50] + '...' if conversation.user_message and conversation.user_message|length > 50 else (conversation.user_message or 'N/A') }}</td>
-                                            <td>{{ conversation.bot_response[:50] + '...' if conversation.bot_response and conversation.bot_response|length > 50 else (conversation.bot_response or 'N/A') }}</td>
-                                            <td>{{ conversation.timestamp[:16] if conversation.timestamp else 'N/A' }}</td>
-                                            <td><span class="status-success">Completed</span></td>
-                                        </tr>
+                                        {% set grouped = {} %}
+                                        {% for c in conversations %}
+                                            {% set uname = (c.user_details.name if c.user_details and c.user_details.name else 'Anonymous') %}
+                                            {% set id_email = (c.user_details.email if c.user_details and c.user_details.email else '') %}
+                                            {% set id_phone = (c.user_details.phone if c.user_details and c.user_details.phone else '') %}
+                                            {% set id_session = c.session_id %}
+                                            {% set ident = id_email if id_email else (id_phone if id_phone else id_session) %}
+                                            {% set key = (uname|lower|trim) ~ '|' ~ ident %}
+                                            {% if key not in grouped %}
+                                                {% set _ = grouped.__setitem__(key, {'name': uname, 'session': c.session_id, 'email': id_email, 'phone': id_phone, 'items': []}) %}
+                                            {% endif %}
+                                            {% set _ = grouped[key]['items'].append(c) %}
+                                            {% if uname and uname|lower != 'anonymous' %}
+                                                {% set _ = grouped[key].update({'name': uname}) %}
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        {% for key, grp in grouped.items() %}
+                                        <div class="card p-4" data-email="{{ grp.email or '' }}" data-phone="{{ grp.phone or '' }}" data-name="{{ grp.name or '' }}" data-session="{{ grp.session or '' }}">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <div class="user-info">
+                                                    <div class="user-header">
+                                                        <svg class="user-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                                        <span class="user-name">{{ grp.name if grp.name and grp.name|lower != 'anonymous' else (grp.email or grp.phone or grp.session) }}</span>
+                                                    </div>
+                                                    {% set id_label = grp.email or grp.phone or (grp.session if grp.session and grp.session|lower != 'default' else '') %}
+                                                    {% if id_label %}
+                                                    <span class="user-detail">{{ id_label }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+
+                                            <div class="space-y-3">
+                                                {% for item in grp['items'] %}
+                                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                                    <div class="p-3 rounded bg-black bg-opacity-20" style="white-space:pre-wrap"><strong>User:</strong> {{ item.user_message or 'N/A' }}</div>
+                                                    <div class="p-3 rounded bg-black bg-opacity-10 md:col-span-2" style="white-space:pre-wrap"><strong>Bot:</strong> {{ item.bot_response or 'N/A' }}</div>
+                                                    <div class="text-xs text-gray-300">{{ item.timestamp[:16] if item.timestamp else 'N/A' }}</div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
                                         {% endfor %}
                                     {% else %}
-                                        <tr>
-                                            <td colspan="5" class="text-center text-gray-400 py-6">No conversations recorded yet</td>
-                                        </tr>
+                                        <div class="text-center text-gray-400 py-6">No conversations recorded yet</div>
                                     {% endif %}
-                                </tbody>
-                            </table>
+                                </div>
                         </div>
                         </div>
                     </div>
@@ -1181,6 +1202,7 @@
                                             <th>Company</th>
                                             <th>First Visit</th>
                                             <th>Source</th>
+                                            <th>Chat Details</th>
                                         </tr>
                                     </thead>
                                     <tbody id="users-table-body">
@@ -1319,6 +1341,9 @@
                                 <td>${user.company}</td>
                                 <td>${user.firstVisit}</td>
                                 <td><span class="status-success">${user.source}</span></td>
+                                <td>
+                                    <button class="btn-secondary" onclick="filterConversationsForUser('${user.email}','${user.phone}','${user.name}')">View</button>
+                                </td>
                             `;
                             
                             usersTableBody.appendChild(row);
@@ -1702,6 +1727,49 @@
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
+                }
+            }
+
+            // Function to filter conversations by user (appointment ID)
+            function filterConversationsByUser(appointmentId) {
+                const conversationsBody = document.getElementById('conversations-body');
+                const rows = Array.from(conversationsBody.querySelectorAll('tr'));
+
+                rows.forEach(row => {
+                    const sessionId = row.dataset.session;
+                    if (sessionId && sessionId.includes(appointmentId)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+
+            // Function to filter conversations for a specific user and switch tab
+            function filterConversationsForUser(email, phone, name) {
+                showTab('conversations');
+                const container = document.getElementById('conversation-groups');
+                if (!container) return;
+                const groups = Array.from(container.querySelectorAll(':scope > .card'));
+                const norm = s => (s || '').toString().trim().toLowerCase();
+                const emailN = norm(email), phoneN = norm(phone), nameN = norm(name);
+                let firstMatch = null;
+                groups.forEach(g => {
+                    const gEmail = norm(g.getAttribute('data-email'));
+                    const gPhone = norm(g.getAttribute('data-phone'));
+                    const gName = norm(g.getAttribute('data-name'));
+                    const gSession = norm(g.getAttribute('data-session'));
+                    const match = (emailN && gEmail && gEmail === emailN) ||
+                                  (phoneN && gPhone && gPhone === phoneN) ||
+                                  (nameN && gName && gName === nameN) ||
+                                  (!emailN && !phoneN && !nameN && gSession); // fallback: if nothing provided, show all
+                    if (match && !firstMatch) firstMatch = g;
+                    g.style.display = match ? '' : 'none';
+                });
+                if (firstMatch) {
+                    firstMatch.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    firstMatch.classList.add('pulse-glow');
+                    setTimeout(() => firstMatch.classList.remove('pulse-glow'), 1200);
                 }
             }
     </script>
